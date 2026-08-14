@@ -1,0 +1,55 @@
+# Docker build context exclusions
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Tests (not needed in production image)
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+CHANGELOG.md
+docs/
+*.md
+
+# Docker (avoid recursive context)
+Dockerfile
+docker-compose.yml
+docker-compose.*.yml
+.dockerignore
+
+# Data & secrets (never include in image)
+.data/
+.env
+.env.*
+*.pem
+*.key
+deploy/certs/
+
+# CI/CD
+.github/
+.gitlab-ci.yml

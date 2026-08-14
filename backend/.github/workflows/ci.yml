@@ -1,0 +1,220 @@
+# ============================================================
+#  Enterprise AI Quant System — CI/CD Pipeline
+# ============================================================
+#  Triggers:
+#    - push to main/develop: lint + test + build image
+#    - pull request: lint + test
+#    - tag v*: deploy to registry
+# ============================================================
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ["v*"]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  PYTHON_VERSION: "3.12"
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # ─────────────────── Lint & Type Check ───────────────────
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install linting tools
+        run: |
+          pip install --upgrade pip
+          pip install ruff mypy
+
+      - name: Run ruff (lint)
+        run: ruff check app/ --output-format=github
+
+      - name: Run ruff (format check)
+        run: ruff format app/ --check
+
+      - name: Run mypy (type check)
+        run: mypy app/ --ignore-missing-imports || true
+
+  # ─────────────────── Security Scan ───────────────────────
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install security tools
+        run: |
+          pip install --upgrade pip
+          pip install bandit safety pip-audit
+
+      - name: Run bandit (SAST)
+        run: bandit -r app/ -f json -o bandit-report.json || true
+
+      - name: Run pip-audit (dependency scan)
+        run: |
+          pip install -r requirements.txt 2>/dev/null || true
+          pip-audit || true
+
+      - name: Upload bandit report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-bandit-report
+          path: bandit-report.json
+
+  # ─────────────────── Test Suite ──────────────────────────
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    needs: [lint]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: test_pass
+          POSTGRES_USER: test_user
+          POSTGRES_DB: test_quant
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      QUANT_ENVIRONMENT: test
+      QUANT_STORAGE_ENABLED: "false"
+      QUANT_AUTH_ENABLED: "false"
+      QUANT_DEBUG: "true"
+      QUANT_POSTGRES_DSN: postgresql://test_user:test_pass@localhost:5432/test_quant
+      QUANT_REDIS_URL: redis://localhost:6379/0
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install psycopg[binary] sqlalchemy alembic redis structlog
+          pip install pytest pytest-cov pytest-asyncio httpx
+
+      - name: Run database migrations
+        run: |
+          alembic upgrade head || true
+
+      - name: Run tests with coverage
+        run: |
+          pytest tests/ -v --cov=app --cov-report=xml --cov-report=term-missing
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+  # ─────────────────── Build Docker Image ─────────────────
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    if: github.event_name == 'push' || startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix=sha-
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ─────────────────── Deploy (on tag) ─────────────────────
+  deploy:
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Deploy notification
+        run: |
+          echo "🚀 Deploying version ${{ github.ref_name }}"
+          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}"
+          echo "TODO: Add SSH deploy script here"
+
+      # Uncomment and configure for actual deployment:
+      # - name: Deploy via SSH
+      #   uses: appleboy/ssh-action@v1
+      #   with:
+      #     host: ${{ secrets.DEPLOY_HOST }}
+      #     username: ${{ secrets.DEPLOY_USER }}
+      #     key: ${{ secrets.DEPLOY_SSH_KEY }}
+      #     script: |
+      #       cd /opt/quant
+      #       docker compose pull
+      #       docker compose up -d --remove-orphans
+      #       docker compose exec app alembic upgrade head

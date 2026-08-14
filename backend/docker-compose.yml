@@ -1,0 +1,173 @@
+# ============================================================
+#  Enterprise AI Quant System — Full Stack Docker Compose
+# ============================================================
+#  Services:
+#    - app       : FastAPI application (gunicorn + uvicorn workers)
+#    - worker    : Celery async task worker
+#    - postgres  : PostgreSQL 16 database
+#    - redis     : Redis 7 (events + cache + Celery broker)
+#    - nginx     : Reverse proxy / TLS termination
+#
+#  Usage:
+#    docker compose up -d            # start everything
+#    docker compose logs -f app      # follow app logs
+#    docker compose exec app alembic upgrade head   # run migrations
+#    docker compose down             # stop everything
+# ============================================================
+
+services:
+  # ─── PostgreSQL Database ───────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-quant}
+      POSTGRES_USER: ${POSTGRES_USER:-quant}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-quant}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+    networks:
+      - quant_net
+
+  # ─── Redis (Events + Cache + Celery Broker) ────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "6379:6379"
+    networks:
+      - quant_net
+
+  # ─── FastAPI Application ───────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      QUANT_ENVIRONMENT: ${QUANT_ENVIRONMENT:-production}
+      QUANT_STORAGE_BACKEND: postgres
+      QUANT_STORAGE_ENABLED: "true"
+      QUANT_POSTGRES_DSN: postgresql://${POSTGRES_USER:-quant}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-quant}
+      QUANT_REDIS_URL: redis://redis:6379/0
+      QUANT_EVENT_BACKEND: redis
+      QUANT_AUTH_ENABLED: "true"
+      QUANT_AUTH_SECRET: ${QUANT_AUTH_SECRET}
+      QUANT_AUTH_ADMIN_PASSWORD: ${QUANT_AUTH_ADMIN_PASSWORD}
+      QUANT_FORCE_HTTPS: "false"
+      QUANT_ALLOWED_HOSTS: '["localhost","api.example.com"]'
+      QUANT_CORS_ORIGINS: '["http://localhost:5173","https://app.example.com"]'
+      QUANT_METRICS_ENABLED: "true"
+      QUANT_METRICS_AUTH_ENABLED: "true"
+      QUANT_LOG_FORMAT: json
+      QUANT_LOG_LEVEL: INFO
+      QUANT_RATE_LIMIT_ENABLED: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - app_data:/app/.data
+    networks:
+      - quant_net
+    expose:
+      - "8000"
+
+  # ─── Celery Worker (Async Tasks) ───────────────────────────
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      QUANT_ENVIRONMENT: ${QUANT_ENVIRONMENT:-production}
+      QUANT_STORAGE_BACKEND: postgres
+      QUANT_STORAGE_ENABLED: "true"
+      QUANT_POSTGRES_DSN: postgresql://${POSTGRES_USER:-quant}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-quant}
+      QUANT_REDIS_URL: redis://redis:6379/0
+      QUANT_ENABLE_CELERY: "true"
+      QUANT_CELERY_BROKER_URL: redis://redis:6379/1
+      QUANT_CELERY_RESULT_BACKEND: redis://redis:6379/2
+      QUANT_LOG_FORMAT: json
+    command: ["celery", "-A", "app.tasks.celery_app", "worker", "--loglevel=info", "--concurrency=4"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - quant_net
+
+  # ─── Celery Beat (Scheduled Tasks) ─────────────────────────
+  beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      QUANT_ENVIRONMENT: ${QUANT_ENVIRONMENT:-production}
+      QUANT_STORAGE_BACKEND: postgres
+      QUANT_STORAGE_ENABLED: "true"
+      QUANT_POSTGRES_DSN: postgresql://${POSTGRES_USER:-quant}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-quant}
+      QUANT_REDIS_URL: redis://redis:6379/0
+      QUANT_ENABLE_CELERY: "true"
+      QUANT_CELERY_BROKER_URL: redis://redis:6379/1
+      QUANT_CELERY_RESULT_BACKEND: redis://redis:6379/2
+      QUANT_LOG_FORMAT: json
+    command: ["celery", "-A", "app.tasks.celery_app", "beat", "--loglevel=info"]
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - quant_net
+
+  # ─── Nginx Reverse Proxy ──────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/certs:/etc/nginx/certs:ro
+    depends_on:
+      - app
+    networks:
+      - quant_net
+
+# ─── Volumes ────────────────────────────────────────────────
+volumes:
+  pg_data:
+    driver: local
+  redis_data:
+    driver: local
+  app_data:
+    driver: local
+
+# ─── Networks ───────────────────────────────────────────────
+networks:
+  quant_net:
+    driver: bridge

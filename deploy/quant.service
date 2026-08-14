@@ -1,0 +1,18 @@
+[Unit]
+Description=Enterprise AI Quant Backend
+After=network-online.target docker.service
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/backend
+EnvironmentFile=-/home/ubuntu/backend/.env
+ExecStart=/home/ubuntu/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --no-access-log
+Restart=on-failure
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

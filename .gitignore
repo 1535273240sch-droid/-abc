@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+
+# Runtime data & secrets
+.env
+.env.bak*
+*.pkl
+*.db
+*.sqlite3
+
+# Node
+node_modules/
+dist/
+npm-debug.log*
+
+# IDE / misc
+.idea/
+.vscode/
+*.log

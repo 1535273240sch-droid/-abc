@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: enterprise-ai-quant-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${QUANT_POSTGRES_USER:-quant}
+      POSTGRES_PASSWORD: ${QUANT_POSTGRES_PASSWORD:?set QUANT_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${QUANT_POSTGRES_DB:-quant}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - enterprise-ai-quant-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  redis:
+    image: redis:7-alpine
+    container_name: enterprise-ai-quant-redis
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${QUANT_REDIS_PASSWORD:?set QUANT_REDIS_PASSWORD}
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${QUANT_REDIS_PASSWORD:?set QUANT_REDIS_PASSWORD}"]
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - enterprise-ai-quant-redis:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$${REDIS_PASSWORD}\" ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+volumes:
+  enterprise-ai-quant-postgres:
+  enterprise-ai-quant-redis:
