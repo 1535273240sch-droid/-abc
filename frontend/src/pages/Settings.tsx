@@ -1,30 +1,32 @@
-import { Activity, Database, Key, Lock, RefreshCw, Search, ShieldCheck, UserCheck, Users, Zap } from 'lucide-react'
+import { Activity, Bot, Database, Key, Lock, RefreshCw, Search, ShieldCheck, UserCheck, Users, Zap, Sparkles, Cpu } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { mapBackendAdapterHealth, mapBackendAuditLog } from '../adapters'
+import { mapBackendAuditLog } from '../adapters'
 import { api, type SystemStatusResponse } from '../api'
 import { useAppState } from '../components/Layout'
 import { DataState, PageIntro, Panel, StatusBadge, TabGroup } from '../components/Primitives'
-import { mockAuditLogs, mockExchangeConnections } from '../mockData'
-import type { AuditLog, ExchangeConnection } from '../types'
+import { ExchangeCredentialsManager } from '../components/ExchangeCredentialsManager'
+import { AIModelGateway } from '../components/AIModelGateway'
+import type { AuditLog } from '../types'
 
 export default function Settings() {
   const { globalState, setGlobalState } = useAppState()
   const [loading, setLoading] = useState(true)
   const [isLiveApi, setIsLiveApi] = useState(false)
-  const [isLiveAdapterApi, setIsLiveAdapterApi] = useState(false)
-  const [activeTab, setActiveTab] = useState<'exchanges' | 'rbac' | 'audit' | 'system'>('exchanges')
+  const [activeTab, setActiveTab] = useState<'exchanges' | 'ai_models' | 'rbac' | 'audit' | 'system'>('exchanges')
   const [auditSearch, setAuditSearch] = useState('')
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(mockAuditLogs)
-  const [exchangeConnections, setExchangeConnections] = useState<ExchangeConnection[]>(mockExchangeConnections)
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
   const [systemStatus, setSystemStatus] = useState<SystemStatusResponse | null>(null)
+  const [credentialCount, setCredentialCount] = useState<number>(0)
+  const [providerCount, setProviderCount] = useState<number>(0)
 
   const loadSettingsData = async () => {
     setLoading(true)
     try {
-      const [statusRes, auditRes, adaptersRes] = await Promise.all([
+      const [statusRes, auditRes, credsRes, providersRes] = await Promise.all([
         api.systemStatus().catch(() => null),
-        api.auditEvents(50, 0).catch(() => null),
-        api.adapters().catch(() => null)
+        api.auditEvents(100, 0).catch(() => null),
+        api.liveCredentials().catch(() => null),
+        api.modelProviders().catch(() => null),
       ])
 
       let connected = false
@@ -32,16 +34,19 @@ export default function Settings() {
         setSystemStatus(statusRes)
         connected = true
       }
-      if (auditRes && Array.isArray(auditRes) && auditRes.length > 0) {
+      if (auditRes && Array.isArray(auditRes)) {
         setAuditLogs(auditRes.map((a) => mapBackendAuditLog(a)))
         connected = true
-      }
-      if (adaptersRes && Array.isArray(adaptersRes) && adaptersRes.length > 0) {
-        setExchangeConnections(adaptersRes.map((ad) => mapBackendAdapterHealth(ad)))
-        setIsLiveAdapterApi(true)
-        connected = true
       } else {
-        setIsLiveAdapterApi(false)
+        setAuditLogs([])
+      }
+      if (credsRes && Array.isArray(credsRes)) {
+        setCredentialCount(credsRes.length)
+        connected = true
+      }
+      if (providersRes && Array.isArray(providersRes)) {
+        setProviderCount(providersRes.length)
+        connected = true
       }
 
       setIsLiveApi(connected)
@@ -59,7 +64,7 @@ export default function Settings() {
   if (globalState !== 'success') {
     return (
       <div>
-        <PageIntro eyebrow="控制平面" title="系统设置 Settings" description="交易所密钥引用、RBAC 角色权限、系统全局配置与不可篡改审计日志" />
+        <PageIntro eyebrow="控制平面" title="系统设置 Settings" description="交易所密钥管理、AI 大模型网关、RBAC 角色权限与不可篡改审计日志" />
         <DataState state={globalState} onRetry={() => setGlobalState('success')} />
       </div>
     )
@@ -69,7 +74,7 @@ export default function Settings() {
     return (
       <div>
         <PageIntro eyebrow="控制平面" title="系统设置 Settings" description="正在读取系统状态与 API 审计事件..." />
-        <DataState state="loading" title="读取系统设置中" description="GET /api/v1/system/status, GET /api/v1/audit/events, GET /api/v1/adapters" />
+        <DataState state="loading" title="读取系统设置中" description="GET /api/v1/system/status, GET /api/v1/live/credentials, GET /api/v1/control/model-providers" />
       </div>
     )
   }
@@ -78,19 +83,20 @@ export default function Settings() {
     (log) =>
       log.action.toLowerCase().includes(auditSearch.toLowerCase()) ||
       log.eventType.toLowerCase().includes(auditSearch.toLowerCase()) ||
-      log.operator.toLowerCase().includes(auditSearch.toLowerCase())
+      log.operator.toLowerCase().includes(auditSearch.toLowerCase()) ||
+      (log.traceId && log.traceId.toLowerCase().includes(auditSearch.toLowerCase()))
   )
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <PageIntro
         eyebrow="控制平面"
-        title="系统设置与安全审计 (Phase 4 契约对齐)"
-        description="符合企业级合规：API Key 仅通过 Secret Manager 引用管理，系统不可篡改审计追踪"
+        title="系统设置与 API 网关中心 (Milestone M4 生产就绪)"
+        description="机构级安全凭据存证（Binance / OKX / Coinbase）、AI 大模型推理网关（OpenAI / Gemini / Claude / DeepSeek）与不可篡改合规审计"
         action={
           <button className="button button--secondary" onClick={loadSettingsData}>
             <RefreshCw size={14} />
-            刷新 API 状态
+            刷新全局状态
           </button>
         }
       />
@@ -110,24 +116,25 @@ export default function Settings() {
       >
         <span style={{ color: isLiveApi ? 'var(--color-positive)' : 'var(--color-warning)' }}>
           {isLiveApi
-            ? `✓ 已接入 API GET /api/v1/system/status, /audit/events ${isLiveAdapterApi ? '& /api/v1/adapters (Paper Adapter)' : ''}`
-            : '⚠ 系统设置 API 未连接，当前展示 [Demo / Mock 审计与连接数据源]'}
+            ? '✓ 已接入生产级 API 控制平面: /api/v1/live/credentials, /api/v1/control/model-providers, /api/v1/audit/events'
+            : '⚠ 控制平面后端 API 暂未连接，请检查网关服务状态'}
         </span>
         <StatusBadge tone={isLiveApi ? 'positive' : 'warning'} dot={true}>
-          {isLiveApi ? 'Settings & Adapters API Live' : 'Demo Settings'}
+          {isLiveApi ? 'Control & Gateway API Live' : 'Offline Mode'}
         </StatusBadge>
       </div>
 
       <Panel
         title="控制平面配置中心"
-        subtitle="权限隔离、密钥安全与合规审计"
+        subtitle="凭证加密隔离、AI 推理网关路由与合规审计追踪"
         action={
           <TabGroup
             tabs={[
-              { id: 'exchanges', label: '交易所连接 (Connections)', badge: `${exchangeConnections.length}` },
+              { id: 'exchanges', label: '交易所 API 凭据中心', badge: credentialCount > 0 ? `${credentialCount}` : undefined },
+              { id: 'ai_models', label: 'AI 大模型网关', badge: providerCount > 0 ? `${providerCount}` : undefined },
               { id: 'rbac', label: '角色与 RBAC 权限' },
-              { id: 'audit', label: '审计日志 (Audit Log)', badge: `${auditLogs.length}` },
-              { id: 'system', label: '系统全局参数' },
+              { id: 'audit', label: '合规审计日志 (Audit Log)', badge: auditLogs.length > 0 ? `${auditLogs.length}` : undefined },
+              { id: 'system', label: '系统全局参数 & BFF 节点' },
             ]}
             activeTab={activeTab}
             onChange={(id) => setActiveTab(id as any)}
@@ -135,50 +142,11 @@ export default function Settings() {
         }
       >
         {activeTab === 'exchanges' && (
-          <div>
-            <div style={{ padding: 12, backgroundColor: 'rgba(53, 114, 239, 0.1)', border: '1px solid rgba(53, 114, 239, 0.25)', borderRadius: 'var(--radius-md)', marginBottom: 16, fontSize: 12, color: '#93C5FD' }}>
-              <Lock size={14} style={{ display: 'inline', marginRight: 6, verticalAlign: 'middle' }} />
-              <strong>安全约束提醒：</strong> API Key 和 Secret 仅存放在机构级 Secret Manager / HashiCorp Vault 中。前端与代码库禁止包含或输入明文 Key。
-              {isLiveAdapterApi ? ' (数据源: GET /api/v1/adapters 真实只读状态)' : ' (注意：API 未连接时展示 [Demo / Mock 适配器视图])'}
-            </div>
+          <ExchangeCredentialsManager />
+        )}
 
-            <div className="data-table-wrap">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>连接名称</th>
-                    <th>交易所</th>
-                    <th>环境</th>
-                    <th>Secret Manager 引用 ID</th>
-                    <th>网络延迟 (Ping)</th>
-                    <th>最近同步</th>
-                    <th>连接状态</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {exchangeConnections.map((conn) => (
-                    <tr key={conn.id}>
-                      <td><strong>{conn.name}</strong></td>
-                      <td>{conn.exchange}</td>
-                      <td>
-                        <StatusBadge tone="accent" dot={false}>
-                          {conn.mode}
-                        </StatusBadge>
-                      </td>
-                      <td className="cell-mono" style={{ fontSize: 11, color: 'var(--text-muted)' }}>{conn.secretRef}</td>
-                      <td className="cell-mono text-positive">{conn.ping}</td>
-                      <td className="cell-mono" style={{ fontSize: 11, color: 'var(--text-muted)' }}>{conn.lastSync}</td>
-                      <td>
-                        <StatusBadge tone={conn.status === '已连接' ? 'positive' : 'warning'}>
-                          {conn.status}
-                        </StatusBadge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+        {activeTab === 'ai_models' && (
+          <AIModelGateway />
         )}
 
         {activeTab === 'rbac' && (
@@ -192,6 +160,7 @@ export default function Settings() {
                   <th>纸面下单</th>
                   <th>实盘生产授权</th>
                   <th>API 密钥管理</th>
+                  <th>AI 网关配置</th>
                 </tr>
               </thead>
               <tbody>
@@ -201,7 +170,8 @@ export default function Settings() {
                   <td className="text-positive">✓ 完全控制</td>
                   <td className="text-positive">✓ 完全控制</td>
                   <td className="text-warning">⚠ 需双人复核</td>
-                  <td className="text-positive">✓ Vault 管理</td>
+                  <td className="text-positive">✓ AES-256 存证</td>
+                  <td className="text-positive">✓ 完全控制</td>
                 </tr>
                 <tr>
                   <td><strong>量化研究员 (Quant)</strong></td>
@@ -210,6 +180,7 @@ export default function Settings() {
                   <td className="text-positive">✓ 仅纸面环境</td>
                   <td className="text-muted">✗ 无权限</td>
                   <td className="text-muted">✗ 无权限</td>
+                  <td className="text-positive">✓ 策略调用</td>
                 </tr>
                 <tr>
                   <td><strong>风控主管 (Risk Officer)</strong></td>
@@ -218,6 +189,7 @@ export default function Settings() {
                   <td className="text-muted">✗ 只读查看</td>
                   <td className="text-warning">⚠ 审批权</td>
                   <td className="text-muted">✗ 无权限</td>
+                  <td className="text-positive">✓ 风控审计调用</td>
                 </tr>
               </tbody>
             </table>
@@ -227,7 +199,7 @@ export default function Settings() {
         {activeTab === 'audit' && (
           <div>
             <div style={{ display: 'flex', gap: 12, marginBottom: 14 }}>
-              <div className="search-box" style={{ width: 300 }}>
+              <div className="search-box" style={{ width: 320 }}>
                 <Search size={15} />
                 <input
                   type="text"
@@ -256,7 +228,7 @@ export default function Settings() {
                 </thead>
                 <tbody>
                   {filteredAuditLogs.length === 0 ? (
-                    <tr><td colSpan={8} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>无匹配审计事件</td></tr>
+                    <tr><td colSpan={8} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px 0' }}>暂无匹配的审计事件记录</td></tr>
                   ) : (
                     filteredAuditLogs.map((log) => (
                       <tr key={log.id}>
@@ -290,7 +262,7 @@ export default function Settings() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
                 <div>时间标准: <code className="cell-mono">UTC ISO 8601 (YYYY-MM-DDTHH:mm:ss.sssZ)</code></div>
                 <div>金额/数量语义: <code className="cell-mono">Decimal (精确字符串传输，禁止二进制浮点)</code></div>
-                <div>全局交易模式: <code className="cell-mono text-accent">paper ({systemStatus?.mode || 'default paper'})</code></div>
+                <div>全局交易模式: <code className="cell-mono text-accent">{systemStatus?.mode || 'paper'}</code></div>
                 <div>系统版本: <code className="cell-mono">{systemStatus?.app_version || 'v0.1.0'}</code></div>
               </div>
             </div>
@@ -310,3 +282,4 @@ export default function Settings() {
     </div>
   )
 }
+

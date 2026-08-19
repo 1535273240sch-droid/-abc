@@ -40,7 +40,8 @@ logger = logging.getLogger(__name__)
 class InMemoryStore:
     _persistence_format = "quant-snapshot-v1"
 
-    def __init__(self):
+    def __init__(self, load_from_db: bool = True):
+        self._lock = threading.Lock()
         self.orders: dict[str, Any] = {}
         self.risk_decisions: dict[str, Any] = {}
         self.positions: dict[str, Any] = {}
@@ -89,6 +90,12 @@ class InMemoryStore:
         from app.services.control_service import ControlService
         self.control_service = ControlService(self)
         self.ai_service = AIService(self)
+        from app.services.alpha_mining_service import AlphaMiningService
+        from app.services.portfolio_optimizer_service import PortfolioOptimizerService
+        from app.services.strategy_evolution_service import StrategyEvolutionService
+        self.alpha_mining_service = AlphaMiningService(self)
+        self.portfolio_optimizer_service = PortfolioOptimizerService(self)
+        self.strategy_evolution_service = StrategyEvolutionService(self)
 
         self._lock = threading.RLock()
         self.persistence_error: str | None = None

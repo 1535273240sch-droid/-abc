@@ -1,0 +1,511 @@
+{
+  "module_1_market": {
+    "1.1_tickers_schema_and_values": {
+      "passed": true,
+      "latency_ms": 8.481495009618811,
+      "details": {
+        "count": 5,
+        "symbols": [
+          "BTCUSDT",
+          "ETHUSDT",
+          "BNBUSDT",
+          "SOLUSDT",
+          "DOGEUSDT"
+        ],
+        "sources": [
+          "okx-ws"
+        ]
+      }
+    },
+    "1.2_orderbook_20levels_BTCUSDT": {
+      "passed": true,
+      "latency_ms": 2.221258997451514,
+      "details": {
+        "symbol": "BTCUSDT",
+        "depth_bids": 20,
+        "depth_asks": 20,
+        "best_bid": 64242.19,
+        "best_ask": 64242.2,
+        "spread": 0.00999999999476131,
+        "bids_descending": true,
+        "asks_ascending": true,
+        "source": "binance-public"
+      }
+    },
+    "1.2_orderbook_20levels_ETHUSDT": {
+      "passed": true,
+      "latency_ms": 54.477220997796394,
+      "details": {
+        "symbol": "ETHUSDT",
+        "depth_bids": 20,
+        "depth_asks": 20,
+        "best_bid": 1900.36,
+        "best_ask": 1900.37,
+        "spread": 0.009999999999990905,
+        "bids_descending": true,
+        "asks_ascending": true,
+        "source": "binance-public"
+      }
+    },
+    "1.2_orderbook_20levels_SOLUSDT": {
+      "passed": true,
+      "latency_ms": 54.00700900645461,
+      "details": {
+        "symbol": "SOLUSDT",
+        "depth_bids": 20,
+        "depth_asks": 20,
+        "best_bid": 76.35,
+        "best_ask": 76.36,
+        "spread": 0.010000000000005116,
+        "bids_descending": true,
+        "asks_ascending": true,
+        "source": "binance-public"
+      }
+    },
+    "1.2_orderbook_20levels_BNBUSDT": {
+      "passed": true,
+      "latency_ms": 55.697292991681024,
+      "details": {
+        "symbol": "BNBUSDT",
+        "depth_bids": 20,
+        "depth_asks": 20,
+        "best_bid": 601.32,
+        "best_ask": 601.33,
+        "spread": 0.009999999999990905,
+        "bids_descending": true,
+        "asks_ascending": true,
+        "source": "binance-public"
+      }
+    },
+    "1.2_orderbook_20levels_DOGEUSDT": {
+      "passed": true,
+      "latency_ms": 54.0835169958882,
+      "details": {
+        "symbol": "DOGEUSDT",
+        "depth_bids": 20,
+        "depth_asks": 20,
+        "best_bid": 0.06986,
+        "best_ask": 0.06987,
+        "spread": 9.999999999996123e-06,
+        "bids_descending": true,
+        "asks_ascending": true,
+        "source": "binance-public"
+      }
+    },
+    "1.3_orderbook_depth_bound_ge_le": {
+      "passed": true,
+      "latency_ms": 2.2302230063360184,
+      "details": {
+        "status": 422
+      }
+    },
+    "1.4_trades_stream": {
+      "passed": true,
+      "latency_ms": 56.00709599093534,
+      "details": {
+        "count": 20,
+        "sample": [
+          {
+            "trade_id": "6579274868",
+            "symbol": "BTCUSDT",
+            "price": "64242.19000000",
+            "quantity": "0.00008000",
+            "side": "sell",
+            "time": "2026-08-18 12:54:38.796000+00:00"
+          }
+        ]
+      }
+    },
+    "1.5_funding_rates": {
+      "passed": true,
+      "latency_ms": 61.49985600495711,
+      "details": {
+        "count": 5,
+        "symbols": [
+          "BTCUSDT-PERP",
+          "BNBUSDT-PERP",
+          "SOLUSDT-PERP",
+          "ETHUSDT-PERP",
+          "DOGEUSDT-PERP"
+        ]
+      }
+    },
+    "1.6_high_frequency_100_burst": {
+      "passed": true,
+      "latency_ms": null,
+      "details": {
+        "total_requests": 102,
+        "successful_requests": 102,
+        "total_burst_wall_time_ms": 197.13737099664286,
+        "rps": 517.4057028575115,
+        "latency_min_ms": 43.45604800619185,
+        "latency_p50_ms": 122.45147899375297,
+        "latency_p95_ms": 182.07827584119514,
+        "latency_p99_ms": 187.17902556774789,
+        "latency_max_ms": 187.20796299749054
+      }
+    }
+  },
+  "module_2_orders_risk_mtm": {
+    "2.1_risk_preflight_approved": {
+      "passed": true,
+      "latency_ms": 4.84220999351237,
+      "details": {
+        "decision": "approved",
+        "decision_id": "31598950-782a-42e7-9e99-d129f2a3b82b",
+        "remaining_budget": "1000000.00",
+        "rules_checked_count": 3
+      }
+    },
+    "2.2_risk_preflight_oversized_rejection": {
+      "passed": true,
+      "latency_ms": 3.35289299255237,
+      "details": {
+        "decision": "rejected",
+        "reject_reason": "Notional value 99999999000000.00 exceeds maximum allowed (1000000)"
+      }
+    },
+    "2.3_order_intent_creation": {
+      "passed": true,
+      "latency_ms": 4.222625007969327,
+      "details": {
+        "client_order_id": "challenger-ord-62db415c",
+        "status": "new",
+        "filled_quantity": "0.00000000",
+        "average_price": null
+      }
+    },
+    "2.4_order_persistence_query": {
+      "passed": true,
+      "latency_ms": 2.9174910014262423,
+      "details": {
+        "found": true,
+        "total_orders": 3
+      }
+    },
+    "2.5_duplicate_order_conflict_check": {
+      "passed": true,
+      "latency_ms": 3.3655070001259446,
+      "details": {
+        "status": 200
+      }
+    },
+    "2.6_position_mtm_calculation": {
+      "passed": true,
+      "latency_ms": 3.2460290094604716,
+      "details": {
+        "positions_updated": 1,
+        "updates": [
+          {
+            "position_id": "pos-btc-001",
+            "symbol": "BTCUSDT",
+            "side": "buy",
+            "quantity": "0.50000000",
+            "entry_price": "95000.00",
+            "mark_price": "71500.50",
+            "unrealized_pnl": "-11749.75",
+            "current_price": "71500.50"
+          }
+        ],
+        "mark_price": "71500.50"
+      }
+    },
+    "2.7_positions_list_query": {
+      "passed": true,
+      "latency_ms": 2.5804900069488212,
+      "details": {
+        "count": 1,
+        "positions": [
+          {
+            "position_id": "pos-btc-001",
+            "account_id": "paper-main",
+            "symbol": "BTCUSDT",
+            "market_type": "spot",
+            "side": "buy",
+            "quantity": "0.50000000",
+            "entry_price": "95000.00",
+            "current_price": "71500.50",
+            "unrealized_pnl": "-11749.75",
+            "realized_pnl": "150.00",
+            "created_at": "2026-08-17T18:56:32.833563+00:00",
+            "updated_at": "2026-08-18T12:54:53.033465+00:00"
+          }
+        ]
+      }
+    }
+  },
+  "module_3_credentials": {
+    "3.1_credentials_list_and_masking": {
+      "passed": true,
+      "latency_ms": 2.4809519964037463,
+      "details": {
+        "count": 47,
+        "connections": [
+          "conn-det-06b5c1",
+          "conn-det-6011ba",
+          "conn-det-68c1c4",
+          "conn-det-a29155",
+          "conn-det-b906e1",
+          "conn-det-b97741",
+          "conn-det-bd49d9",
+          "conn-det-cdd3f9",
+          "conn-det-ce85d2",
+          "conn-det-e46146",
+          "conn-det-edaeb5",
+          "conn-det-f700da",
+          "conn-pw06-252355",
+          "conn-pw06-2999c8",
+          "conn-pw06-301f6b",
+          "conn-pw06-3467af",
+          "conn-pw06-455605",
+          "conn-pw06-4a910e",
+          "conn-pw06-5bc937",
+          "conn-pw06-6f1183",
+          "conn-pw06-8b0bd9",
+          "conn-pw06-d39975",
+          "conn-pw06-ef6fbd",
+          "conn-t1-0495bb",
+          "conn-t1-0d66c3",
+          "conn-t1-25a502",
+          "conn-t1-2ff017",
+          "conn-t1-3d6912",
+          "conn-t1-4484f0",
+          "conn-t1-8903e7",
+          "conn-t1-abd284",
+          "conn-t1-b3e9bb",
+          "conn-t1-cedaa0",
+          "conn-t1-d7c713",
+          "conn-t1-f8d5dd",
+          "conn-test-0145be",
+          "conn-test-29b8f3",
+          "conn-test-3283ca",
+          "conn-test-4225d0",
+          "conn-test-55e4ce",
+          "conn-test-769522",
+          "conn-test-a0c1dd",
+          "conn-test-ae6764",
+          "conn-test-b18ab5",
+          "conn-test-c3b9c8",
+          "conn-test-d72b69",
+          "conn-test-dc1e6e"
+        ],
+        "fingerprints_verified": true,
+        "no_secrets_leaked": true
+      }
+    },
+    "3.2_save_credential_binance": {
+      "passed": true,
+      "latency_ms": 7.506677007768303,
+      "details": {
+        "connection_id": "challenger-bin-1f7e55",
+        "fingerprint": "AKI\u202601 (60787fe9)",
+        "status": "stored_encrypted"
+      }
+    },
+    "3.3_save_credential_okx_passphrase": {
+      "passed": true,
+      "latency_ms": 8.914153004297987,
+      "details": {
+        "connection_id": "challenger-okx-acece7",
+        "has_passphrase": true
+      }
+    },
+    "3.4_credential_dryrun_connectivity_test": {
+      "passed": true,
+      "latency_ms": 57.98006700933911,
+      "details": {
+        "connection_id": "challenger-bin-1f7e55",
+        "status": "failed",
+        "message": "[binance] HTTP 401: Unauthorized"
+      }
+    },
+    "3.5_cleanup_test_credentials": {
+      "passed": true,
+      "latency_ms": null,
+      "details": {
+        "bin_del_status": 200,
+        "okx_del_status": 200
+      }
+    }
+  },
+  "module_4_ai_gateway": {
+    "4.1_model_providers_list": {
+      "passed": true,
+      "latency_ms": 2.210802005720325,
+      "details": {
+        "count": 6,
+        "provider_ids": [
+          "claude",
+          "deepseek",
+          "gemini",
+          "my-deepseek-2",
+          "openai",
+          "test_ssrf_probe"
+        ],
+        "statuses": {
+          "claude": "reference_configured",
+          "deepseek": "reference_configured",
+          "gemini": "configured_reference",
+          "my-deepseek-2": "not_configured",
+          "openai": "reference_configured",
+          "test_ssrf_probe": "not_configured"
+        }
+      }
+    },
+    "4.2_model_provider_upsert": {
+      "passed": true,
+      "latency_ms": 3.1648580043110996,
+      "details": {
+        "provider_id": "openai",
+        "display_name": "OpenAI GPT-4o Gateway",
+        "runtime_ready": false,
+        "status": "configured_reference"
+      }
+    },
+    "4.3_model_provider_test_connectivity": {
+      "passed": true,
+      "latency_ms": 2.052558003924787,
+      "details": {
+        "provider_id": "openai",
+        "status": "reference_configured",
+        "runtime_ready": false,
+        "message": "Secret reference is present; runtime secret resolver is required"
+      }
+    },
+    "4.4_model_provider_nonexistent_handling": {
+      "passed": true,
+      "latency_ms": 2.0225640037097037,
+      "details": {
+        "status": 404
+      }
+    }
+  },
+  "module_5_control_exchanges": {
+    "5.1_control_exchanges_listing_f5": {
+      "passed": true,
+      "latency_ms": 3.432837998843752,
+      "details": {
+        "count": 68,
+        "exchanges": [
+          "binance-paper",
+          "bybit-paper",
+          "conn-del-6b52d2",
+          "conn-del-caf376",
+          "conn-del-cc40d8",
+          "conn-det-06b5c1",
+          "conn-det-215a16",
+          "conn-det-3c6247",
+          "conn-det-6011ba",
+          "conn-det-68c1c4",
+          "conn-det-9f48fb",
+          "conn-det-a29155",
+          "conn-det-b906e1",
+          "conn-det-b97741",
+          "conn-det-bd49d9",
+          "conn-det-cdd3f9",
+          "conn-det-ce85d2",
+          "conn-det-e46146",
+          "conn-det-edaeb5",
+          "conn-det-f700da",
+          "conn-pw06-16bda0",
+          "conn-pw06-252355",
+          "conn-pw06-2999c8",
+          "conn-pw06-301f6b",
+          "conn-pw06-3467af",
+          "conn-pw06-455605",
+          "conn-pw06-4a910e",
+          "conn-pw06-5bc937",
+          "conn-pw06-6f1183",
+          "conn-pw06-892bff",
+          "conn-pw06-8b0bd9",
+          "conn-pw06-d39975",
+          "conn-pw06-ef6fbd",
+          "conn-s2-binance-f3c16f",
+          "conn-s2-binance-f8a50d",
+          "conn-t1-0495bb",
+          "conn-t1-0d66c3",
+          "conn-t1-25a502",
+          "conn-t1-2ff017",
+          "conn-t1-3d6912",
+          "conn-t1-4484f0",
+          "conn-t1-649417",
+          "conn-t1-8903e7",
+          "conn-t1-89ab79",
+          "conn-t1-a48399",
+          "conn-t1-abd284",
+          "conn-t1-b3e9bb",
+          "conn-t1-ce983f",
+          "conn-t1-cedaa0",
+          "conn-t1-d7c713",
+          "conn-t1-f8d5dd",
+          "conn-test-0145be",
+          "conn-test-29b8f3",
+          "conn-test-3132b5",
+          "conn-test-3283ca",
+          "conn-test-4225d0",
+          "conn-test-55e4ce",
+          "conn-test-769522",
+          "conn-test-95c91d",
+          "conn-test-a0c1dd",
+          "conn-test-ae6764",
+          "conn-test-b18ab5",
+          "conn-test-c3b9c8",
+          "conn-test-cd4144",
+          "conn-test-d72b69",
+          "conn-test-dc1e6e",
+          "okx-paper",
+          "paper-paper"
+        ]
+      }
+    },
+    "5.2_control_exchanges_test_paper": {
+      "passed": true,
+      "latency_ms": 2.259938992210664,
+      "details": {
+        "connection_id": "paper-paper",
+        "status": "paper_ready",
+        "runtime_ready": true,
+        "message": "Paper adapter is available; no external credentials are used"
+      }
+    }
+  },
+  "module_6_stress_and_edge": {
+    "6.1_sqli_resilience_symbol": {
+      "passed": true,
+      "latency_ms": 2.1355430071707815,
+      "details": {
+        "status": 404
+      }
+    },
+    "6.2_malformed_json_order_intent": {
+      "passed": true,
+      "latency_ms": 2.0594000088749453,
+      "details": {
+        "status": 422
+      }
+    },
+    "6.3_empty_payload_risk_preflight": {
+      "passed": true,
+      "latency_ms": 2.3869489959906787,
+      "details": {
+        "status": 422
+      }
+    },
+    "6.4_mixed_concurrency_pipeline": {
+      "passed": true,
+      "latency_ms": null,
+      "details": {
+        "total_tasks": 60,
+        "successful_tasks": 60,
+        "wall_time_ms": 148.02528300788254,
+        "throughput_rps": 405.3361613691691
+      }
+    }
+  },
+  "summary": {
+    "total_tests": 32,
+    "passed_tests": 32,
+    "failed_tests": 0,
+    "verdict": "APPROVE"
+  }
+}

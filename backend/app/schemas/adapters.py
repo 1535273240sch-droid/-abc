@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -58,14 +59,14 @@ class CredentialRedactedResponse(BaseModel):
     credential_status: str
     credential_fingerprint: str | None = None
     has_passphrase: bool = False
-    updated_at: str | None = None
+    updated_at: datetime | str | None = None
 
 
 class CredentialTestResponse(BaseModel):
     connection_id: str
     status: str
     message: str
-    tested_at: str
+    tested_at: datetime | str | None = None
 
 
 class LiveDiagnosisResponse(BaseModel):

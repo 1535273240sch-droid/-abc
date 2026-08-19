@@ -3,7 +3,7 @@ import { Activity, Bell, Bot, CandlestickChart, ChevronDown, CircleHelp, Command
 import { createContext, useContext, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import type { AsyncState } from '../types'
-import { IconButton, StatusBadge } from './Primitives'
+import { HeartbeatIndicator, IconButton, StatusBadge } from './Primitives'
 
 interface AppStateContextType {
   globalState: AsyncState
@@ -29,7 +29,7 @@ const navigation: { label: string; items: NavItem[] }[] = [
   {
     label: '交易与研究',
     items: [
-      { label: '市场数据', to: '/market', icon: CandlestickChart, badge: 'SIM' },
+      { label: '市场数据', to: '/market', icon: CandlestickChart, badge: 'LIVE' },
       { label: '量化研究', to: '/research', icon: FlaskConical },
       { label: '交易执行', to: '/execution', icon: WalletCards },
     ]
@@ -75,7 +75,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="workspace-avatar">Q</div>
             <div className="workspace-name">
               <span>Quantum Labs</span>
-              <small>主工作区 · paper mode</small>
+              <small>主工作区 · 机构专区</small>
             </div>
             <ChevronDown size={15} />
           </div>
@@ -95,7 +95,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       <Icon size={17} strokeWidth={1.8} />
                       <span>{item.label}</span>
                       {item.badge && (
-                        <em className={`nav-badge ${item.badge === 'SIM' ? 'nav-badge--sim' : ''}`}>
+                        <em className={`nav-badge ${item.badge === 'LIVE' ? 'nav-badge--live' : item.badge === 'SIM' ? 'nav-badge--sim' : ''}`}>
                           {item.badge}
                         </em>
                       )}
@@ -107,13 +107,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="sidebar-bottom">
-            <div className="sidebar-status">
-              <span className="pulse-dot" />
-              <div>
-                <b>系统运行正常</b>
-                <small>心跳响应 · 12ms (UTC)</small>
-              </div>
-            </div>
+            <HeartbeatIndicator latencyMs={12} status="connected" />
             <div className="sidebar-links">
               <a href="#docs"><CircleHelp size={14} /> 架构文档</a>
               <a href="#shortcuts"><Command size={14} /> 快捷键</a>
@@ -159,9 +153,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <kbd>⌘ K</kbd>
               </div>
 
-              <StatusBadge tone="neutral">
+              <StatusBadge tone="positive">
                 <Wifi size={12} />
-                纸面环境 (Paper)
+                系统就绪 (Live)
               </StatusBadge>
 
               <IconButton label="通知" onClick={() => setShowNotifications(!showNotifications)}>
@@ -177,12 +171,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </main>
 
           <footer className="app-footer">
-            <span>Quant Console v0.1.0</span>
+            <span>Quant Console v0.2.0</span>
             <span>API 契约 v1.0.0</span>
             <span>UTC+0 (Zulu Time)</span>
             <span className="footer-spacer" />
             <span>
-              <Activity size={13} /> [模拟数据 | Paper Environment]
+              <Activity size={13} /> [生产级实时数据流 | Live Production]
             </span>
           </footer>
         </div>

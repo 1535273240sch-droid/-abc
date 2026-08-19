@@ -1,13 +1,12 @@
-import json
-import urllib.request
-from decimal import Decimal
+import time
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Any
-from urllib.parse import quote
 
-from app.models.domain import Symbol, Ticker
 from app.core.config import settings
+from app.core.errors import QuantError
 from app.events.bus import DomainEvent, event_bus, event_type, new_event_id, now_utc
+from app.models.domain import Symbol, Ticker
 from app.services.market_providers import MultiSourceMarketProvider, default_providers
 
 
@@ -19,6 +18,9 @@ class MarketService:
         self.last_error: str | None = None
         self.last_source: str | None = None
         self.sequence = 0
+        self._orderbook_cache: dict[str, tuple[float, dict[str, Any]]] = {}
+        self._trades_cache: dict[str, tuple[float, list[dict[str, Any]]]] = {}
+        self._funding_cache: tuple[float, list[dict[str, Any]]] | None = None
         self._seed()
 
     def _seed(self):
@@ -164,30 +166,120 @@ class MarketService:
 
     def get_order_book(self, symbol: str, depth: int = 5) -> dict[str, Any]:
         ticker = self._store.tickers.get(symbol)
-        if not ticker:
-            from app.core.errors import QuantError
+        if not ticker and symbol not in self._store.symbols:
             raise QuantError("NOT_FOUND", f"Ticker {symbol} not found", status_code=404)
-        bid = Decimal(ticker.bid_price)
-        ask = Decimal(ticker.ask_price)
-        tick_size = Decimal(self._store.symbols[symbol].tick_size)
+
+        if settings.market_data_mode == "public":
+            now_mono = time.monotonic()
+            cached = self._orderbook_cache.get(symbol)
+            if cached and (now_mono - cached[0] < 1.0):
+                book = cached[1]
+                return {
+                    "symbol": symbol,
+                    "source": book.get("source", self.last_source or "binance-public"),
+                    "updated_at": book.get("updated_at", datetime.now(timezone.utc)),
+                    "bids": book.get("bids", [])[:depth],
+                    "asks": book.get("asks", [])[:depth],
+                }
+
+            fetched, source = self._provider.fetch_order_book(symbol, depth=max(depth, 20))
+            if fetched and (fetched.get("bids") or fetched.get("asks")):
+                self._orderbook_cache[symbol] = (now_mono, fetched)
+                return {
+                    "symbol": symbol,
+                    "source": source or "public",
+                    "updated_at": fetched.get("updated_at", datetime.now(timezone.utc)),
+                    "bids": fetched.get("bids", [])[:depth],
+                    "asks": fetched.get("asks", [])[:depth],
+                }
+
+            if cached:
+                book = cached[1]
+                return {
+                    "symbol": symbol,
+                    "source": book.get("source", "cached-public"),
+                    "updated_at": book.get("updated_at", datetime.now(timezone.utc)),
+                    "bids": book.get("bids", [])[:depth],
+                    "asks": book.get("asks", [])[:depth],
+                }
+
+        # Mock / Paper fallback mode
+        bid = Decimal(getattr(ticker, "bid_price", "100.0")) if ticker else Decimal("100.0")
+        ask = Decimal(getattr(ticker, "ask_price", "100.1")) if ticker else Decimal("100.1")
+        sym_info = self._store.symbols.get(symbol)
+        tick_size = Decimal(sym_info.tick_size) if sym_info else Decimal("0.01")
         bids = [[str((bid - tick_size * i).quantize(tick_size)), str((Decimal("0.1") * (i + 1)).quantize(Decimal("0.0001")))] for i in range(depth)]
         asks = [[str((ask + tick_size * i).quantize(tick_size)), str((Decimal("0.08") * (i + 1)).quantize(Decimal("0.0001")))] for i in range(depth)]
-        return {"symbol": symbol, "source": getattr(ticker, "source", "seeded-paper"), "updated_at": getattr(ticker, "ingest_time", None) or datetime.now(timezone.utc), "bids": bids, "asks": asks}
+        return {
+            "symbol": symbol,
+            "source": getattr(ticker, "source", "seeded-paper") if ticker else "seeded-paper",
+            "updated_at": getattr(ticker, "ingest_time", None) or datetime.now(timezone.utc),
+            "bids": bids,
+            "asks": asks,
+        }
 
     def get_trades(self, symbol: str, limit: int = 10) -> list[dict[str, Any]]:
         ticker = self._store.tickers.get(symbol)
-        if not ticker:
-            from app.core.errors import QuantError
+        if not ticker and symbol not in self._store.symbols:
             raise QuantError("NOT_FOUND", f"Ticker {symbol} not found", status_code=404)
+
+        if settings.market_data_mode == "public":
+            now_mono = time.monotonic()
+            cached = self._trades_cache.get(symbol)
+            if cached and (now_mono - cached[0] < 1.5):
+                return cached[1][:limit]
+
+            fetched, source = self._provider.fetch_trades(symbol, limit=max(limit, 20))
+            if fetched:
+                self._trades_cache[symbol] = (now_mono, fetched)
+                return fetched[:limit]
+
+            if cached:
+                return cached[1][:limit]
+
+        # Mock / Paper fallback mode
         now = datetime.now(timezone.utc)
-        price = Decimal(ticker.last_price)
-        return [{"trade_id": f"paper-trade-{symbol.lower()}-{i}", "symbol": symbol, "price": str(price), "quantity": str((Decimal("0.01") * (i + 1)).quantize(Decimal("0.0001"))), "side": "buy" if i % 2 == 0 else "sell", "time": now} for i in range(min(limit, 20))]
+        price = Decimal(getattr(ticker, "last_price", "100.0")) if ticker else Decimal("100.0")
+        return [
+            {
+                "trade_id": f"paper-trade-{symbol.lower()}-{i}",
+                "symbol": symbol,
+                "price": str(price),
+                "quantity": str((Decimal("0.01") * (i + 1)).quantize(Decimal("0.0001"))),
+                "side": "buy" if i % 2 == 0 else "sell",
+                "time": now,
+            }
+            for i in range(min(limit, 20))
+        ]
 
     def get_funding_rates(self) -> list[dict[str, Any]]:
+        if settings.market_data_mode == "public":
+            now_mono = time.monotonic()
+            if self._funding_cache and (now_mono - self._funding_cache[0] < 30.0):
+                return self._funding_cache[1]
+
+            fetched, source = self._provider.fetch_funding_rates()
+            if fetched:
+                self._funding_cache = (now_mono, fetched)
+                return fetched
+
+            if self._funding_cache:
+                return self._funding_cache[1]
+
+        # Mock / Paper fallback mode
         result = []
         for symbol in ("BTCUSDT", "ETHUSDT", "SOLUSDT"):
             ticker = self._store.tickers.get(symbol)
             change = Decimal(str(getattr(ticker, "change_24h", "0")).replace("+", "")) if ticker else Decimal("0")
             rate = (change / Decimal("100000")).quantize(Decimal("0.0001"))
-            result.append({"symbol": f"{symbol}-PERP", "rate": f"{rate:+f}%", "predicted_rate": f"{(rate * Decimal("1.1")).quantize(Decimal("0.0001")):+f}%", "next_settlement": "Paper / N/A", "open_interest": "Paper / N/A", "open_interest_change": "Paper / N/A", "source": "paper-derived"})
+            predicted = (rate * Decimal("1.1")).quantize(Decimal("0.0001"))
+            result.append({
+                "symbol": f"{symbol}-PERP",
+                "rate": f"{rate:+f}%",
+                "predicted_rate": f"{predicted:+f}%",
+                "next_settlement": "Paper / N/A",
+                "open_interest": "Paper / N/A",
+                "open_interest_change": "Paper / N/A",
+                "source": "paper-derived",
+            })
         return result

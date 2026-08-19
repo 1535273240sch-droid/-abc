@@ -1,15 +1,103 @@
-import type { RiskPreflightView } from './types'
+
+export interface AlphaFactorItem {
+  factor_id: string
+  expression: string
+  symbol: string
+  hypothesis?: string
+  rank_ic: number
+  ic: number
+  ic_ir: number
+  factor_sharpe: number
+  win_rate: number
+  source: string
+  status: string
+  discovered_at: string
+}
+
+export interface PortfolioOptimizationAllocation {
+  symbol: string
+  target_weight: number
+  risk_contribution: number
+  expected_annual_return: number
+  annual_volatility: number
+  latest_price: number
+}
+
+export interface PortfolioOptimizationResult {
+  method: string
+  optimized_at: string
+  symbols_count: number
+  expected_annual_return_pct: number
+  expected_annual_volatility_pct: number
+  portfolio_sharpe_ratio: number
+  allocations: PortfolioOptimizationAllocation[]
+}
+
+export interface PortfolioRebalanceOrder {
+  symbol: string
+  side: 'buy' | 'sell'
+  target_weight: number
+  current_quantity: number
+  target_quantity: number
+  diff_quantity: number
+  estimated_notional_usd: number
+  current_price: number
+}
+
+export interface StrategyEvolutionItem {
+  evolution_id: string
+  strategy_id: string
+  base_version: string
+  candidate_version: string
+  status: string
+  weakness_diagnosis: string
+  llm_proposal: string
+  parameter_changes: Record<string, { old: any; new: any }>
+  sandbox_results: {
+    base_metrics: Record<string, any>
+    evolved_metrics: Record<string, any>
+    sharpe_improvement_pct: number
+    drawdown_reduction_pct: number
+    passed_verification_gate?: boolean
+  }
+  approval_id?: string
+  operator?: string
+  created_at: string
+  applied_at?: string
+}
+
+import type {
+  ChatMessage,
+  ChatRequest,
+  ChatResponse,
+  CredentialRedactedResponse,
+  CredentialSaveRequest,
+  CredentialTestResponse,
+  ModelProviderResponse,
+  ModelProviderUpsertRequest,
+  ProviderTestResponse,
+  RiskPreflightView,
+} from './types'
+
+export type {
+  ChatMessage,
+  ChatRequest,
+  ChatResponse,
+  CredentialRedactedResponse,
+  CredentialSaveRequest,
+  CredentialTestResponse,
+  ModelProviderResponse,
+  ModelProviderUpsertRequest,
+  ProviderTestResponse,
+}
 
 /**
- * Backend wire contracts. These names intentionally stay snake_case because
- * the FastAPI endpoints currently return snake_case JSON. Presentation and
- * demo models remain in types.ts/mockData.ts and must not be treated as API
- * responses without an explicit adapter.
+ * Backend wire contracts matching FastAPI endpoints in snake_case.
  */
 
 export interface HealthResponse {
   status: string
-  timestamp: string
+  timestamp?: string
 }
 
 export interface SystemStatusResponse {
@@ -41,6 +129,46 @@ export interface TickerResponse {
   change_24h: string
   high_24h: string
   low_24h: string
+  source?: string
+  event_time?: string | null
+  ingest_time?: string | null
+  sequence?: number | null
+}
+
+export interface OrderBookResponse {
+  symbol: string
+  source: string
+  updated_at: string
+  bids: [string, string][]
+  asks: [string, string][]
+}
+
+export interface TradeResponse {
+  trade_id: string
+  symbol: string
+  price: string
+  quantity: string
+  side: string
+  time: string
+}
+
+export interface FundingRateResponse {
+  symbol: string
+  rate: string
+  predicted_rate: string
+  next_settlement: string
+  open_interest: string
+  open_interest_change: string
+  source: string
+}
+
+export interface MarketQualityResponse {
+  status: string
+  usable: boolean
+  checked_at: string
+  symbol_count: number
+  ticker_count: number
+  issues: Record<string, unknown>[]
 }
 
 export interface PreflightRequest {
@@ -66,6 +194,8 @@ export interface PreflightResponse {
   remaining_risk_budget: string
   rules_checked: Record<string, unknown>[]
   mode: string
+  price?: string | null
+  notional?: string | null
   created_at: string
 }
 
@@ -134,80 +264,18 @@ export interface StrategyResponse {
   updated_at: string
 }
 
-export interface AuditEventResponse {
-  event_id: string
-  event_type: string
-  actor: string
-  resource_type: string
-  resource_id: string
-  details: Record<string, unknown>
-  ip_address: string | null
-  trace_id: string | null
-  created_at: string
-}
-
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    readonly status: number,
-    readonly code: string = 'HTTP_ERROR',
-    readonly trace_id?: string,
-    readonly details?: unknown,
-  ) {
-    super(message)
-    this.name = 'ApiError'
-  }
-}
-
-export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000').replace(/\/$/, '')
-
-function requestId(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID()
-  }
-  return `frontend-${Date.now()}`
-}
-
-function idempotencyKey(): string {
-  return `preflight-${requestId()}`
-}
-
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    headers: {
-      Accept: 'application/json',
-      'X-Request-ID': requestId(),
-      ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
-      ...init?.headers,
-    },
-  })
-
-  const contentType = response.headers.get('content-type') ?? ''
-  const payload: unknown = contentType.includes('application/json') ? await response.json() : await response.text()
-
-  if (!response.ok) {
-    let detail = `HTTP ${response.status}`
-    let code = 'HTTP_ERROR'
-    let traceId: string | undefined = undefined
-
-    if (typeof payload === 'object' && payload !== null) {
-      const obj = payload as Record<string, any>
-      if (obj.trace_id) traceId = String(obj.trace_id)
-
-      if (obj.error && typeof obj.error === 'object') {
-        detail = obj.error.message || detail
-        if (obj.error.code) code = String(obj.error.code)
-        if (obj.error.trace_id) traceId = String(obj.error.trace_id)
-      } else if (obj.detail) {
-        detail = String(obj.detail)
-        if (obj.code) code = String(obj.code)
-      }
-    }
-    throw new ApiError(detail, response.status, code, traceId, payload)
-  }
-
-  return payload as T
+export interface StrategyRunResponse {
+  run_id: string
+  strategy_id: string
+  strategy_version: string
+  mode: string
+  signals_generated: number
+  intents_created: number
+  orders_executed: number
+  errors: string[]
+  started_at: string
+  completed_at: string
+  duration_ms: number
 }
 
 export interface BacktestRequest {
@@ -225,56 +293,71 @@ export interface BacktestResponse {
   backtest_id: string
   strategy_id: string
   strategy_version: string
-  parameters: Record<string, unknown>
-  code_ref?: string
+  account_id: string
   data_snapshot: string
   fee_model: string
   slippage_model: string
-  run_environment: string
+  run_environment?: string
   initial_capital: string
   mode: string
   status: string
-  net_profit: string | null
-  sharpe_ratio: string | null
-  max_drawdown: string | null
-  win_rate: string | null
-  total_trades: number
+  net_profit?: string | null
+  sharpe_ratio?: string | null
+  max_drawdown?: string | null
+  win_rate?: string | null
+  total_trades?: number | null
+  code_ref?: string
   created_at: string
-  completed_at: string | null
+  completed_at?: string | null
+}
+
+export interface RiskRuleResponse {
+  id: string
+  name: string
+  scope: string
+  detail: string
+  result: string
+  checked_at: string
+}
+
+export interface CircuitBreakerResponse {
+  id: string
+  name: string
+  target: string
+  trigger_condition: string
+  action: string
+  status: string
 }
 
 export interface FillRequest {
   client_order_id: string
-  fill_quantity: string
   fill_price: string
+  fill_quantity: string
+  fill_fee?: string
+  fee_asset?: string
+  mode?: string
 }
 
 export interface FillResponse {
   client_order_id: string
-  fill_id: string
   status: string
   filled_quantity: string
-  average_price: string | null
-  position_updates: Record<string, unknown> | null
+  average_price: string
+  message: string
 }
 
 export interface AdapterExecuteResponse {
   client_order_id: string
   status: string
-  filled_quantity: string
-  average_price: string | null
-  position_updates: Record<string, unknown> | null
-  adapter_result: Record<string, unknown>
-}
-
-export interface CancelRequest {
-  client_order_id: string
+  exchange_order_id?: string
+  mode: string
+  message?: string
 }
 
 export interface CancelResponse {
   client_order_id: string
   status: string
-  reject_reason: string | null
+  message?: string
 }
 
 export interface ReconciliationResponse {
@@ -287,21 +370,18 @@ export interface ReconciliationResponse {
 }
 
 export interface ResolutionRequest {
+  actor?: string
   decision: 'acknowledged' | 'rejected'
   reason: string
-  actor?: string
   mode?: string
-  idempotency_key?: string | null
 }
 
 export interface ResolutionResponse {
-  resolution_id: string
   reconciliation_id: string
-  account_id: string
+  status: string
   decision: string
   reason: string
   actor: string
-  idempotency_key: string | null
   created_at: string
 }
 
@@ -313,11 +393,17 @@ export interface GovernanceApprovalResponse {
   title: string
   details: string
   status: string
-  decided_by: string | null
-  reject_reason: string | null
+  decided_by?: string | null
+  reject_reason?: string | null
   created_at: string
-  decided_at: string | null
+  decided_at?: string | null
   expires_at: string
+}
+
+export interface ApprovalDecideRequest {
+  decision: 'approved' | 'rejected'
+  decided_by: string
+  reject_reason?: string | null
 }
 
 export interface GovernanceKillSwitchResponse {
@@ -329,11 +415,45 @@ export interface GovernanceKillSwitchResponse {
   recovered_at: string | null
 }
 
+export interface KillSwitchTriggerRequest {
+  triggered_by: string
+  reason: string
+  mode?: string
+}
+
 export interface KillSwitchRecoverRequest {
   approval_id: string
   recovered_by: string
   reason: string
   mode?: string
+}
+
+export interface AgentTaskResponse {
+  task_id: string
+  title: string
+  task_type: string
+  status: string
+  operator: string
+  started_at: string
+  duration: string
+  evidence_chain: string[]
+  tool_permissions_used: string[]
+  created_at: string
+  updated_at: string
+}
+
+export interface ExchangeConnectionResponse {
+  connection_id: string
+  adapter_name: string
+  display_name: string
+  environment: string
+  secret_ref: string | null
+  enabled: boolean
+  adapter_status: string
+  credential_status: string
+  latency_ms: number | null
+  last_error: string | null
+  updated_at: string
 }
 
 export interface AdapterHealthResponse {
@@ -395,20 +515,144 @@ export interface MarkToMarketResponse {
   }>
 }
 
+export interface AuditEventResponse {
+  event_id: string
+  event_type: string
+  actor: string
+  resource_type: string
+  resource_id: string
+  details: Record<string, unknown>
+  ip_address: string | null
+  trace_id: string | null
+  created_at: string
+}
+
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly code: string = 'HTTP_ERROR',
+    readonly trace_id?: string,
+    readonly details?: unknown,
+  ) {
+    super(message)
+    this.name = 'ApiError'
+  }
+}
+
+export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
+
+function requestId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `frontend-${Date.now()}`
+}
+
+function idempotencyKey(): string {
+  return `preflight-${requestId()}`
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const url = `${API_BASE_URL}${path}`
+  const response = await fetch(url, {
+    ...init,
+    headers: {
+      Accept: 'application/json',
+      'X-Request-ID': requestId(),
+      ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
+      ...init?.headers,
+    },
+  })
+
+  const contentType = response.headers.get('content-type') ?? ''
+  const payload: unknown = contentType.includes('application/json') ? await response.json() : await response.text()
+
+  if (!response.ok) {
+    let detail = `HTTP ${response.status}`
+    let code = 'HTTP_ERROR'
+    let traceId: string | undefined = undefined
+
+    if (typeof payload === 'object' && payload !== null) {
+      const obj = payload as Record<string, any>
+      if (obj.trace_id) traceId = String(obj.trace_id)
+
+      if (obj.error && typeof obj.error === 'object') {
+        detail = obj.error.message || detail
+        if (obj.error.code) code = String(obj.error.code)
+        if (obj.error.trace_id) traceId = String(obj.error.trace_id)
+      } else if (obj.detail) {
+        detail = typeof obj.detail === 'string' ? obj.detail : JSON.stringify(obj.detail)
+        if (obj.code) code = String(obj.code)
+      }
+    }
+    throw new ApiError(detail, response.status, code, traceId, payload)
+  }
+
+  return payload as T
+}
+
 export const api = {
+
+  // ─── Alpha Mining & Factor Discovery ───
+  alphaFactors: (symbol?: string, minRankIc?: number) =>
+    request<AlphaFactorItem[]>(`/api/v1/research/alpha/factors?${symbol ? `symbol=${encodeURIComponent(symbol)}&` : ''}${minRankIc ? `min_rank_ic=${minRankIc}` : ''}`),
+
+  mineAlphaFactors: (body: { symbol?: string; period?: string; generations?: number; population_size?: number; bars_count?: number }) =>
+    request<AlphaFactorItem[]>('/api/v1/research/alpha/mine', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  generateLlmAlphaFactor: (body: { hypothesis: string; symbol?: string }) =>
+    request<AlphaFactorItem>('/api/v1/research/alpha/llm-generate', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  // ─── Portfolio Optimization ───
+  optimizePortfolio: (body: { symbols: string[]; method?: string; period?: string; lookback_bars?: number }) =>
+    request<PortfolioOptimizationResult>('/api/v1/research/portfolio/optimize', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  portfolioRebalancePlan: (body: { allocations: PortfolioOptimizationAllocation[]; total_portfolio_value?: number; account_id?: string }) =>
+    request<PortfolioRebalanceOrder[]>('/api/v1/research/portfolio/rebalance-plan', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  // ─── Strategy Self-Evolution & Auto-Tuning ───
+  strategyEvolutions: (strategyId?: string) =>
+    request<StrategyEvolutionItem[]>(`/api/v1/research/strategy/evolutions${strategyId ? `?strategy_id=${encodeURIComponent(strategyId)}` : ''}`),
+
+  evolveStrategy: (body: { strategy_id: string; recent_backtest_id?: string; operator?: string }) =>
+    request<StrategyEvolutionItem>('/api/v1/research/strategy/evolve', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  applyStrategyEvolution: (body: { evolution_id: string; operator?: string }) =>
+    request<StrategyEvolutionItem>('/api/v1/research/strategy/apply-evolution', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
   health: () => request<HealthResponse>('/health'),
   ready: () => request<HealthResponse>('/ready'),
   systemStatus: () => request<SystemStatusResponse>('/api/v1/system/status'),
+
+  // Market Data (100% Real Live Feeds)
   symbols: () => request<SymbolResponse[]>('/api/v1/market/symbols'),
   tickers: () => request<TickerResponse[]>('/api/v1/market/tickers'),
-  preflight: (body: PreflightRequest) => request<PreflightResponse>('/api/v1/risk/preflight', {
-    method: 'POST',
-    body: JSON.stringify({
-      ...body,
-      mode: body.mode ?? 'paper',
-      idempotency_key: body.idempotency_key ?? idempotencyKey(),
-    }),
-  }),
+  orderbook: (symbol: string) => request<OrderBookResponse>(`/api/v1/market/orderbook/${encodeURIComponent(symbol)}`),
+  trades: (symbol: string) => request<TradeResponse[]>(`/api/v1/market/trades/${encodeURIComponent(symbol)}`),
+  fundingRates: () => request<FundingRateResponse[]>('/api/v1/market/funding'),
+  marketQuality: () => request<MarketQualityResponse>('/api/v1/market/quality'),
+
+  // Orders & Execution
+  orders: (accountId?: string) => request<OrderResponse[]>(`/api/v1/orders${accountId ? `?account_id=${encodeURIComponent(accountId)}` : ''}`),
   createOrderIntent: (body: OrderIntentRequest) => request<OrderResponse>('/api/v1/orders/intents', {
     method: 'POST',
     body: JSON.stringify({
@@ -418,8 +662,6 @@ export const api = {
       mode: body.mode ?? 'paper',
     }),
   }),
-  orders: (accountId?: string) => request<OrderResponse[]>(`/api/v1/orders${accountId ? `?account_id=${encodeURIComponent(accountId)}` : ''}`),
-  positions: (accountId?: string) => request<PositionResponse[]>(`/api/v1/positions${accountId ? `?account_id=${encodeURIComponent(accountId)}` : ''}`),
   fillOrder: (body: FillRequest) => request<FillResponse>('/api/v1/execution/fills', {
     method: 'POST',
     body: JSON.stringify(body),
@@ -435,6 +677,28 @@ export const api = {
     method: 'POST',
     body: JSON.stringify({ client_order_id: clientOrderId }),
   }),
+
+  // Positions & Portfolio
+  positions: (accountId?: string) => request<PositionResponse[]>(`/api/v1/positions${accountId ? `?account_id=${encodeURIComponent(accountId)}` : ''}`),
+  markToMarket: (body: MarkToMarketRequest) => request<MarkToMarketResponse>('/api/v1/positions/mark-to-market', {
+    method: 'POST',
+    body: JSON.stringify({
+      ...body,
+      account_id: body.account_id ?? 'paper-main',
+      mode: body.mode ?? 'paper',
+    }),
+  }),
+  portfolioTargets: (accountId?: string) => request<PortfolioTargetResponse[]>(`/api/v1/portfolio/targets${accountId ? `?account_id=${encodeURIComponent(accountId)}` : ''}`),
+  portfolioTarget: (targetId: string) => request<PortfolioTargetResponse>(`/api/v1/portfolio/targets/${encodeURIComponent(targetId)}`),
+  createPortfolioTarget: (body: PortfolioTargetRequest) => request<PortfolioTargetResponse>('/api/v1/portfolio/targets', {
+    method: 'POST',
+    body: JSON.stringify({
+      ...body,
+      mode: body.mode ?? 'paper',
+    }),
+  }),
+
+  // Reconciliation
   runReconciliation: (accountId = 'paper-main') => request<ReconciliationResponse>(`/api/v1/execution/reconciliation?account_id=${encodeURIComponent(accountId)}`, {
     method: 'POST',
   }),
@@ -447,18 +711,14 @@ export const api = {
       mode: body.mode ?? 'paper',
     }),
   }),
-  governanceApprovals: (status?: string) => request<GovernanceApprovalResponse[]>(`/api/v1/governance/approvals${status ? `?status=${encodeURIComponent(status)}` : ''}`),
-  governanceKillSwitch: () => request<GovernanceKillSwitchResponse>('/api/v1/governance/kill-switch'),
-  recoverKillSwitch: (body: KillSwitchRecoverRequest) => request<GovernanceKillSwitchResponse>('/api/v1/governance/kill-switch/recover', {
-    method: 'POST',
-    body: JSON.stringify({
-      ...body,
-      mode: body.mode ?? 'paper',
-    }),
-  }),
-  adapters: () => request<AdapterHealthResponse[]>('/api/v1/adapters'),
-  adapter: (name: string) => request<AdapterHealthResponse>(`/api/v1/adapters/${encodeURIComponent(name)}`),
+
+  // Strategies & Research
   strategies: () => request<StrategyResponse[]>('/api/v1/strategies'),
+  strategy: (strategyId: string) => request<StrategyResponse>(`/api/v1/strategies/${encodeURIComponent(strategyId)}`),
+  runStrategy: (strategyId: string) => request<StrategyRunResponse>(`/api/v1/strategies/${encodeURIComponent(strategyId)}/run`, {
+    method: 'POST',
+  }),
+  strategyRuns: () => request<StrategyRunResponse[]>('/api/v1/strategies/runs'),
   createBacktest: (body: BacktestRequest) => request<BacktestResponse>('/api/v1/research/backtests', {
     method: 'POST',
     body: JSON.stringify({
@@ -468,50 +728,102 @@ export const api = {
   }),
   backtests: () => request<BacktestResponse[]>('/api/v1/research/backtests'),
   backtest: (backtestId: string) => request<BacktestResponse>(`/api/v1/research/backtests/${encodeURIComponent(backtestId)}`),
-  createPortfolioTarget: (body: PortfolioTargetRequest) => request<PortfolioTargetResponse>('/api/v1/portfolio/targets', {
+
+  // Risk Management
+  preflight: (body: PreflightRequest) => request<PreflightResponse>('/api/v1/risk/preflight', {
+    method: 'POST',
+    body: JSON.stringify({
+      ...body,
+      mode: body.mode ?? 'paper',
+      idempotency_key: body.idempotency_key ?? idempotencyKey(),
+    }),
+  }),
+  riskRules: () => request<RiskRuleResponse[]>('/api/v1/risk/rules'),
+  circuitBreakers: () => request<CircuitBreakerResponse[]>('/api/v1/risk/circuit-breakers'),
+
+  // Governance & Kill Switch
+  governanceApprovals: (status?: string) => request<GovernanceApprovalResponse[]>(`/api/v1/governance/approvals${status ? `?status=${encodeURIComponent(status)}` : ''}`),
+  governanceApproval: (approvalId: string) => request<GovernanceApprovalResponse>(`/api/v1/governance/approvals/${encodeURIComponent(approvalId)}`),
+  decideApproval: (approvalId: string, body: ApprovalDecideRequest) => request<GovernanceApprovalResponse>(`/api/v1/governance/approvals/${encodeURIComponent(approvalId)}/decide`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  }),
+  governanceKillSwitch: () => request<GovernanceKillSwitchResponse>('/api/v1/governance/kill-switch'),
+  triggerKillSwitch: (body: KillSwitchTriggerRequest) => request<GovernanceKillSwitchResponse>('/api/v1/governance/kill-switch/trigger', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  }),
+  recoverKillSwitch: (body: KillSwitchRecoverRequest) => request<GovernanceKillSwitchResponse>('/api/v1/governance/kill-switch/recover', {
     method: 'POST',
     body: JSON.stringify({
       ...body,
       mode: body.mode ?? 'paper',
     }),
   }),
-  portfolioTargets: (accountId?: string) => request<PortfolioTargetResponse[]>(`/api/v1/portfolio/targets${accountId ? `?account_id=${encodeURIComponent(accountId)}` : ''}`),
-  portfolioTarget: (targetId: string) => request<PortfolioTargetResponse>(`/api/v1/portfolio/targets/${encodeURIComponent(targetId)}`),
-  markToMarket: (body: MarkToMarketRequest) => request<MarkToMarketResponse>('/api/v1/positions/mark-to-market', {
+
+  // AI & Agent Tasks
+  agentTasks: () => request<AgentTaskResponse[]>('/api/v1/agents/tasks'),
+  runAgentTask: (taskId: string) => request<AgentTaskResponse>(`/api/v1/agents/tasks/${encodeURIComponent(taskId)}/run`, {
     method: 'POST',
+  }),
+  chatAI: (body: ChatRequest) => request<ChatResponse>('/api/v1/ai/chat', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  }),
+
+  // Control: Exchange Connections & Live Credentials
+  exchangeConnections: () => request<ExchangeConnectionResponse[]>('/api/v1/control/exchanges'),
+  testExchangeConnection: (connectionId: string) => request<CredentialTestResponse>(`/api/v1/control/exchanges/${encodeURIComponent(connectionId)}/test`, {
+    method: 'POST',
+  }),
+  liveCredentials: () => request<CredentialRedactedResponse[]>('/api/v1/live/credentials'),
+  saveLiveCredential: (body: CredentialSaveRequest) => request<CredentialRedactedResponse>('/api/v1/live/credentials', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  }),
+  testLiveCredential: (connectionId: string) => request<CredentialTestResponse>(`/api/v1/live/credentials/${encodeURIComponent(connectionId)}/test`, {
+    method: 'POST',
+  }),
+  deleteLiveCredential: (connectionId: string) => request<{ deleted: string }>(`/api/v1/live/credentials/${encodeURIComponent(connectionId)}`, {
+    method: 'DELETE',
+  }),
+
+  // Control: AI Model Gateway
+  modelProviders: () => request<ModelProviderResponse[]>('/api/v1/control/model-providers'),
+  upsertModelProvider: (providerId: string, body: ModelProviderUpsertRequest) => request<ModelProviderResponse>(`/api/v1/control/model-providers/${encodeURIComponent(providerId)}`, {
+    method: 'PUT',
     body: JSON.stringify({
       ...body,
-      account_id: body.account_id ?? 'paper-main',
-      mode: body.mode ?? 'paper',
+      provider_id: providerId,
     }),
   }),
+  testModelProvider: (providerId: string) => request<ProviderTestResponse>(`/api/v1/control/model-providers/${encodeURIComponent(providerId)}/test`, {
+    method: 'POST',
+  }),
+
+  // Adapters & Audit
+  adapters: () => request<AdapterHealthResponse[]>('/api/v1/adapters'),
+  adapter: (name: string) => request<AdapterHealthResponse>(`/api/v1/adapters/${encodeURIComponent(name)}`),
   auditEvents: (limit = 100, offset = 0) => request<AuditEventResponse[]>(`/api/v1/audit/events?limit=${limit}&offset=${offset}`),
 }
 
-/**
- * Maps only fields the backend actually returns. It deliberately does not
- * fabricate audit references, timestamps, exposure, liquidation prices, or
- * rule semantics that are absent from the current response contract.
- */
 export function toRiskPreflightView(response: PreflightResponse): RiskPreflightView {
-  const rules = response.rules_checked.map((rule, index) => {
-    const passed = rule.passed === true
-    const name = typeof rule.rule === 'string' ? rule.rule : `rule_${index + 1}`
-    const detail = Object.entries(rule)
-      .filter(([key]) => key !== 'rule' && key !== 'passed')
-      .map(([key, value]) => `${key}=${String(value)}`)
-      .join(' ')
-
-    return { name, passed, detail: detail || (passed ? 'passed=true' : 'passed=false') }
-  })
+  const passedRules = response.rules_checked.filter((rule) => {
+    const status = String(rule.status ?? rule.result ?? '').toLowerCase()
+    return status === 'passed' || status === 'ok' || status === 'true' || rule.passed === true
+  }).length
 
   return {
-    decision: response.decision === 'approved' ? 'PASSED' : 'REJECTED',
+    decision: response.decision.toUpperCase() as 'PASSED' | 'REJECTED' | 'WARNING',
     decisionId: response.decision_id,
-    checkedRulesCount: rules.length,
-    passedRulesCount: rules.filter((rule) => rule.passed).length,
+    passedRulesCount: passedRules,
+    checkedRulesCount: response.rules_checked.length,
     remainingRiskBudget: response.remaining_risk_budget,
     rejectionReason: response.reject_reason ?? undefined,
-    rules,
+    rules: response.rules_checked.map((r, i) => ({
+      name: String(r.name ?? r.rule_id ?? `规则 ${i + 1}`),
+      detail: String(r.detail ?? r.reason ?? (r.passed ? '校验通过' : '未通过')),
+      passed: Boolean(r.passed ?? (r.status === 'passed' || r.result === 'passed')),
+    })),
   }
 }

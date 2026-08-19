@@ -39,7 +39,7 @@ class RunRequest(BaseModel):
 
 
 class KlineRefreshRequest(BaseModel):
-    symbols: list[str] = Field(..., description=["BTCUSDT"])
+    symbols: list[str] = Field(..., description="Symbols list")
     period: str = Field(default="1h")
     limit: int = Field(default=200, ge=1, le=1000)
 

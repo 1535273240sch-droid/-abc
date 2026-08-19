@@ -46,7 +46,7 @@ class BacktestService:
             )
 
         backtest_id = f"bt-{uuid.uuid4().hex[:12]}"
-        run_env = "paper-backtest-engine-v2"
+        run_env = "paper-backtest-engine-v1"
 
         bt = Backtest(
             backtest_id=backtest_id,
@@ -112,7 +112,7 @@ class BacktestService:
         if not bars:
             return _simulate_fallback(initial_capital)
 
-        strategy_cls = strategy_registry.get(strategy.kind)
+        strategy_cls = strategy_registry.get(strategy.kind or strategy.strategy_id)
         if strategy_cls is None:
             return _simulate_fallback(initial_capital)
 

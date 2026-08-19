@@ -10,9 +10,9 @@ export interface MarketTicker {
   changeTone: Tone
   volume: string
   spread: string
-  source: 'binance' | 'okx' | 'bybit'
+  source: 'binance' | 'okx' | 'bybit' | string
   eventTime: string
-  quality: '正常' | '延迟' | '异常'
+  quality: '正常' | '延迟' | '异常' | string
   spark: number[]
   bidPrice: string
   askPrice: string
@@ -41,6 +41,8 @@ export interface TradeEntry {
   side: 'buy' | 'sell'
   time: string
 }
+
+export type Trade = TradeEntry
 
 export interface FundingRate {
   symbol: string
@@ -152,17 +154,17 @@ export interface CircuitBreaker {
   id: string
   name: string
   target: string
-  status: '正常' | '已触发熔断' | '维护中'
+  status: '正常' | '已触发熔断' | '维护中' | string
   triggerCondition: string
   triggeredAt?: string
-  action: '暂停下单' | '强制撤单' | '全平仓位'
+  action: '暂停下单' | '强制撤单' | '全平仓位' | string
 }
 
 export interface AgentTask {
   id: string
   title: string
-  type: '研究分析' | '报告生成' | '策略发布' | '数据巡检' | '风控审查'
-  status: '执行中' | '已完成' | '待审批' | '已暂停'
+  type: '研究分析' | '报告生成' | '策略发布' | '数据巡检' | '风控审查' | string
+  status: '执行中' | '已完成' | '待审批' | '已暂停' | string
   operator: string
   startedAt: string
   duration: string
@@ -173,7 +175,7 @@ export interface AgentTask {
 export interface ApprovalItem {
   id: string
   title: string
-  type: '策略上线' | '实盘模式切换' | '风控限额修改' | 'API Key变更'
+  type: '策略上线' | '实盘模式切换' | '风控限额修改' | 'API Key变更' | string
   requestedBy: string
   createdAt: string
   riskLevel: '高' | '中' | '低'
@@ -183,11 +185,11 @@ export interface ApprovalItem {
 
 export interface ExchangeConnection {
   id: string
-  exchange: 'Binance' | 'OKX' | 'Bybit'
+  exchange: 'Binance' | 'OKX' | 'Bybit' | 'Coinbase' | string
   name: string
   mode: 'paper' | 'live'
   secretRef: string
-  status: '已连接' | '连接中断' | '延迟偏高'
+  status: '已连接' | '连接中断' | '延迟偏高' | string
   ping: string
   lastSync: string
 }
@@ -197,7 +199,7 @@ export interface AuditLog {
   eventTime: string
   eventType: string
   operator: string
-  module: 'control' | 'risk' | 'execution' | 'agent' | 'market'
+  module: 'control' | 'risk' | 'execution' | 'agent' | 'market' | string
   action: string
   result: '成功' | '失败' | '警告'
   ip: string
@@ -211,4 +213,82 @@ export interface SystemService {
   latency: string
   region: string
   version: string
+}
+
+// ── Milestone M4: Exchange Credentials & AI Model Gateway Contracts ─────────
+
+export interface CredentialSaveRequest {
+  connection_id: string
+  exchange: string
+  api_key: string
+  api_secret: string
+  passphrase?: string | null
+  environment: 'live' | 'testnet'
+  base_url?: string | null
+}
+
+export interface CredentialRedactedResponse {
+  connection_id: string
+  exchange: string
+  environment?: string | null
+  base_url?: string | null
+  enabled: boolean
+  credential_status: string
+  credential_fingerprint?: string | null
+  has_passphrase: boolean
+  updated_at?: string | null
+}
+
+export interface CredentialTestResponse {
+  connection_id: string
+  status: string
+  message: string
+  tested_at?: string | null
+}
+
+export interface ModelProviderUpsertRequest {
+  provider_id: string
+  display_name: string
+  base_url: string
+  model: string
+  secret_ref?: string | null
+  enabled: boolean
+  capabilities: string[]
+}
+
+export interface ModelProviderResponse extends ModelProviderUpsertRequest {
+  status: string
+  runtime_ready: boolean
+  updated_at: string
+  last_test_at?: string | null
+  last_error?: string | null
+}
+
+export interface ProviderTestResponse {
+  provider_id: string
+  status: string
+  runtime_ready: boolean
+  message: string
+  tested_at: string
+}
+
+export interface ChatMessage {
+  role: 'system' | 'user' | 'assistant'
+  content: string
+}
+
+export interface ChatRequest {
+  provider_id: string
+  messages: ChatMessage[]
+  temperature?: number
+  max_tokens?: number
+}
+
+export interface ChatResponse {
+  provider_id: string
+  model: string
+  content: string
+  usage: Record<string, any>
+  latency_ms: number
+  status: string
 }

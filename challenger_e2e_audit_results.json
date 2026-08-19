@@ -1,0 +1,270 @@
+{
+  "spa_routes": [
+    {
+      "name": "/",
+      "passed": true,
+      "details": "Status=200, Type=text/html, Size=520B, HasRootDiv=True"
+    },
+    {
+      "name": "/dashboard",
+      "passed": true,
+      "details": "Status=200, Type=text/html, Size=520B, HasRootDiv=True"
+    },
+    {
+      "name": "/market",
+      "passed": true,
+      "details": "Status=200, Type=text/html, Size=520B, HasRootDiv=True"
+    },
+    {
+      "name": "/execution",
+      "passed": true,
+      "details": "Status=200, Type=text/html, Size=520B, HasRootDiv=True"
+    },
+    {
+      "name": "/research",
+      "passed": true,
+      "details": "Status=200, Type=text/html, Size=520B, HasRootDiv=True"
+    },
+    {
+      "name": "/risk",
+      "passed": true,
+      "details": "Status=200, Type=text/html, Size=520B, HasRootDiv=True"
+    },
+    {
+      "name": "/agents",
+      "passed": true,
+      "details": "Status=200, Type=text/html, Size=520B, HasRootDiv=True"
+    },
+    {
+      "name": "/settings",
+      "passed": true,
+      "details": "Status=200, Type=text/html, Size=520B, HasRootDiv=True"
+    },
+    {
+      "name": "/dashboard/overview",
+      "passed": true,
+      "details": "Status=200, Type=text/html, Size=520B, HasRootDiv=True"
+    },
+    {
+      "name": "/market/BTCUSDT",
+      "passed": true,
+      "details": "Status=200, Type=text/html, Size=520B, HasRootDiv=True"
+    },
+    {
+      "name": "/settings/exchanges",
+      "passed": true,
+      "details": "Status=200, Type=text/html, Size=520B, HasRootDiv=True"
+    },
+    {
+      "name": "/non-existent-spa-route-test-404-fallback",
+      "passed": true,
+      "details": "Status=200, Type=text/html, Size=520B, HasRootDiv=True"
+    }
+  ],
+  "static_assets": [
+    {
+      "name": "/assets/index-oAgbEC-V.js",
+      "passed": true,
+      "details": "Status=200, Type=application/javascript, Length=401367B"
+    },
+    {
+      "name": "/assets/index-DiyA03G2.css",
+      "passed": true,
+      "details": "Status=200, Type=text/css, Length=24350B"
+    }
+  ],
+  "api_proxy": [
+    {
+      "name": "/health",
+      "passed": true,
+      "details": "Status=200, Latency=1.31ms, ReqID=3e2737e6.., Keys=['status', 'timestamp']"
+    },
+    {
+      "name": "/health/ready",
+      "passed": true,
+      "details": "Status=200, Latency=39.26ms, ReqID=0b9bb989.., Keys=['status', 'checks', 'timestamp']"
+    },
+    {
+      "name": "/ready",
+      "passed": true,
+      "details": "Status=200, Latency=0.33ms, ReqID=N/A.., "
+    },
+    {
+      "name": "/info",
+      "passed": true,
+      "details": "Status=200, Latency=0.21ms, ReqID=N/A.., "
+    },
+    {
+      "name": "/docs",
+      "passed": true,
+      "details": "Status=200, Latency=1.05ms, ReqID=927895d2.., SwaggerUI HTML=950B"
+    },
+    {
+      "name": "/openapi.json",
+      "passed": true,
+      "details": "Status=200, Latency=3.46ms, ReqID=db9ad24a.., Keys=['openapi', 'info', 'paths', 'components']"
+    },
+    {
+      "name": "/api/v1/system/status",
+      "passed": true,
+      "details": "Status=200, Latency=4.83ms, ReqID=d1a8a28e.., Keys=['app_name', 'app_version', 'mode', 'uptime_seconds', 'status']"
+    },
+    {
+      "name": "/api/v1/market/symbols",
+      "passed": true,
+      "details": "Status=200, Latency=2.42ms, ReqID=33383f5c.., ItemsCount=5"
+    },
+    {
+      "name": "/api/v1/market/tickers",
+      "passed": true,
+      "details": "Status=200, Latency=1.6ms, ReqID=bbe5bfd0.., ItemsCount=5"
+    },
+    {
+      "name": "/api/v1/market/quality",
+      "passed": true,
+      "details": "Status=200, Latency=1.33ms, ReqID=14efba0f.., Keys=['status', 'usable', 'checked_at', 'symbol_count', 'ticker_count']"
+    },
+    {
+      "name": "/api/v1/market/orderbook/BTCUSDT",
+      "passed": true,
+      "details": "Status=200, Latency=51.25ms, ReqID=636691c5.., Keys=['symbol', 'source', 'updated_at', 'bids', 'asks']"
+    },
+    {
+      "name": "/api/v1/market/trades/BTCUSDT",
+      "passed": true,
+      "details": "Status=200, Latency=124.79ms, ReqID=63f821a1.., ItemsCount=10"
+    },
+    {
+      "name": "/api/v1/market/funding",
+      "passed": true,
+      "details": "Status=200, Latency=1.62ms, ReqID=e64a1c53.., ItemsCount=5"
+    },
+    {
+      "name": "/api/v1/orders",
+      "passed": true,
+      "details": "Status=200, Latency=3.74ms, ReqID=736cf479.., ItemsCount=112"
+    },
+    {
+      "name": "/api/v1/positions",
+      "passed": true,
+      "details": "Status=200, Latency=2.32ms, ReqID=0ed9faea.., ItemsCount=34"
+    },
+    {
+      "name": "/api/v1/execution/reconciliation",
+      "passed": true,
+      "details": "Status=200, Latency=1.78ms, ReqID=b04313d7.., ItemsCount=27"
+    },
+    {
+      "name": "/api/v1/adapters",
+      "passed": true,
+      "details": "Status=200, Latency=1.9ms, ReqID=0cc4eb2f.., ItemsCount=6"
+    },
+    {
+      "name": "/api/v1/portfolio/targets",
+      "passed": true,
+      "details": "Status=200, Latency=1.59ms, ReqID=f8153550.., ItemsCount=0"
+    },
+    {
+      "name": "/api/v1/strategies",
+      "passed": true,
+      "details": "Status=200, Latency=1.31ms, ReqID=e5133b23.., ItemsCount=3"
+    },
+    {
+      "name": "/api/v1/strategies/runs",
+      "passed": true,
+      "details": "Status=200, Latency=1.9ms, ReqID=006b44fa.., ItemsCount=0"
+    },
+    {
+      "name": "/api/v1/research/backtests",
+      "passed": true,
+      "details": "Status=200, Latency=1.47ms, ReqID=d490c2d5.., ItemsCount=10"
+    },
+    {
+      "name": "/api/v1/research/historical/series",
+      "passed": true,
+      "details": "Status=200, Latency=2.39ms, ReqID=482779d4.., ItemsCount=1"
+    },
+    {
+      "name": "/api/v1/framework/strategies",
+      "passed": true,
+      "details": "Status=200, Latency=3.07ms, ReqID=be0ac45e.., Keys=['strategies', 'count']"
+    },
+    {
+      "name": "/api/v1/framework/klines/status",
+      "passed": true,
+      "details": "Status=200, Latency=1.31ms, ReqID=7ffc9eea.., Keys=['buffered_series', 'series', 'fetch_errors']"
+    },
+    {
+      "name": "/api/v1/risk/rules",
+      "passed": true,
+      "details": "Status=200, Latency=1.34ms, ReqID=4f4ba007.., ItemsCount=4"
+    },
+    {
+      "name": "/api/v1/risk/circuit-breakers",
+      "passed": true,
+      "details": "Status=200, Latency=1.23ms, ReqID=16c0bbe6.., ItemsCount=3"
+    },
+    {
+      "name": "/api/v1/governance/kill-switch",
+      "passed": true,
+      "details": "Status=200, Latency=1.32ms, ReqID=0421edbb.., Keys=['status', 'triggered_by', 'trigger_reason', 'triggered_at', 'recovered_by']"
+    },
+    {
+      "name": "/api/v1/governance/approvals",
+      "passed": true,
+      "details": "Status=200, Latency=1.76ms, ReqID=c0ac0679.., ItemsCount=32"
+    },
+    {
+      "name": "/api/v1/agents/tasks",
+      "passed": true,
+      "details": "Status=200, Latency=1.79ms, ReqID=8f8c82bb.., ItemsCount=43"
+    },
+    {
+      "name": "/api/v1/alerts/status",
+      "passed": true,
+      "details": "Status=200, Latency=1.62ms, ReqID=b6005052.., Keys=['wechat_work_enabled', 'feishu_enabled', 'dingtalk_enabled', 'telegram_enabled', 'email_enabled']"
+    },
+    {
+      "name": "/api/v1/control/exchanges",
+      "passed": true,
+      "details": "Status=200, Latency=1.87ms, ReqID=e89ecea8.., ItemsCount=68"
+    },
+    {
+      "name": "/api/v1/control/model-providers",
+      "passed": true,
+      "details": "Status=200, Latency=1.56ms, ReqID=72f48e5c.., ItemsCount=6"
+    },
+    {
+      "name": "/api/v1/live/credentials",
+      "passed": true,
+      "details": "Status=200, Latency=1.73ms, ReqID=4989f041.., ItemsCount=47"
+    },
+    {
+      "name": "/api/v1/live/gate/status",
+      "passed": true,
+      "details": "Status=200, Latency=2.14ms, ReqID=fab71530.., Keys=['env_enabled', 'unlocked', 'remaining_seconds', 'operator', 'unlocked_at']"
+    },
+    {
+      "name": "/api/v1/live/risk/status",
+      "passed": true,
+      "details": "Status=200, Latency=1.4ms, ReqID=9cf0c553.., Keys=['breaker_tripped', 'breaker_reason', 'breaker_tripped_at', 'high_water_mark', 'limits']"
+    },
+    {
+      "name": "/api/v1/audit/events",
+      "passed": true,
+      "details": "Status=200, Latency=4.21ms, ReqID=16885a00.., ItemsCount=100"
+    }
+  ],
+  "concurrency": {
+    "total_requests": 100,
+    "concurrency_workers": 20,
+    "success_count": 100,
+    "error_count": 0,
+    "total_duration_sec": 0.112,
+    "p50_ms": 15.0,
+    "p95_ms": 38.01,
+    "p99_ms": 41.33
+  },
+  "verdict": "APPROVE",
+  "failures": []
+}

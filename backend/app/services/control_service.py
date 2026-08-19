@@ -21,9 +21,11 @@ class ControlService:
 
     def _seed_model_providers(self) -> None:
         defaults = [
-            ("openai", "OpenAI", "https://api.openai.com/v1", "not-configured", ["chat", "embeddings"]),
-            ("deepseek", "DeepSeek", "https://api.deepseek.com/v1", "not-configured", ["chat"]),
-            ("gemini", "Google Gemini", "https://generativelanguage.googleapis.com/v1beta", "not-configured", ["chat", "embeddings"]),
+            ("deepseek", "DeepSeek", "https://api.deepseek.com/v1", "deepseek-chat", ["chat", "reasoning"]),
+            ("openai", "OpenAI", "https://api.openai.com/v1", "gpt-4o", ["chat", "embeddings"]),
+            ("anthropic", "Anthropic Claude", "https://api.anthropic.com/v1", "claude-3-5-sonnet-20241022", ["chat"]),
+            ("gemini", "Google Gemini", "https://generativelanguage.googleapis.com/v1beta", "gemini-1.5-pro", ["chat", "embeddings"]),
+            ("stepfun", "StepFun", "https://api.stepfun.com/v1", "step-2-16k", ["chat", "reasoning"]),
         ]
         for provider_id, display_name, base_url, model, capabilities in defaults:
             self._store.model_providers.setdefault(provider_id, {
@@ -51,6 +53,26 @@ class ControlService:
                 "environment": "paper",
                 "secret_ref": None,
                 "enabled": adapter_name == "paper",
+                "updated_at": _now(),
+            })
+        exchanges = [
+            ("binance", "Binance", "live"),
+            ("okx", "OKX", "live"),
+            ("coinbase", "Coinbase", "live"),
+        ]
+        for adapter_name, display_name, env in exchanges:
+            connection_id = adapter_name
+            self._store.exchange_connections.setdefault(connection_id, {
+                "connection_id": connection_id,
+                "adapter_name": adapter_name,
+                "display_name": display_name,
+                "environment": env,
+                "secret_ref": None,
+                "enabled": False,
+                "adapter_status": "disconnected",
+                "credential_status": "not_configured",
+                "latency_ms": None,
+                "last_error": None,
                 "updated_at": _now(),
             })
 
@@ -88,8 +110,30 @@ class ControlService:
         adapters = {item["name"]: item for item in self._store.adapter_service.list_adapters()}
         result = []
         for config in self._store.exchange_connections.values():
-            health = adapters.get(config["adapter_name"], {})
-            item = {**config, "adapter_status": health.get("status", "unknown"), "credential_status": "reference_configured" if config.get("secret_ref") else "not_configured", "latency_ms": health.get("latency_ms"), "last_error": health.get("last_error")}
+            adapter_name = config.get("adapter_name") or config.get("exchange") or (config.get("connection_id", "").split("-")[0] if "-" in config.get("connection_id", "") else "paper") or "paper"
+            health = adapters.get(adapter_name, {})
+            up_at = config.get("updated_at")
+            if isinstance(up_at, str):
+                try:
+                    up_at = datetime.fromisoformat(up_at.replace("Z", "+00:00"))
+                except Exception:
+                    up_at = _now()
+            elif not isinstance(up_at, datetime):
+                up_at = _now()
+
+            item = {
+                "connection_id": config.get("connection_id", ""),
+                "adapter_name": adapter_name,
+                "display_name": config.get("display_name") or (adapter_name.capitalize() if adapter_name else "Exchange"),
+                "environment": config.get("environment") if config.get("environment") in ("paper", "testnet", "live") else "paper",
+                "secret_ref": config.get("secret_ref"),
+                "enabled": bool(config.get("enabled", True)),
+                "adapter_status": health.get("status", "unknown"),
+                "credential_status": "reference_configured" if config.get("secret_ref") else "not_configured",
+                "latency_ms": health.get("latency_ms"),
+                "last_error": health.get("last_error"),
+                "updated_at": up_at,
+            }
             result.append(item)
         return sorted(result, key=lambda item: item["connection_id"])
 

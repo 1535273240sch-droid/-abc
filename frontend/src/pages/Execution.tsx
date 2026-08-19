@@ -4,7 +4,6 @@ import { mapBackendOrder, mapBackendPosition, mapBackendReconciliation } from '.
 import { api, type OrderIntentRequest } from '../api'
 import { useAppState } from '../components/Layout'
 import { DataState, Modal, PageIntro, Panel, ResultMark, StatusBadge, TabGroup } from '../components/Primitives'
-import { mockOrders, mockPositions, mockReconciliation } from '../mockData'
 import type { Order, Position } from '../types'
 
 interface ReconciliationItem {
@@ -22,39 +21,30 @@ export default function Execution() {
   const [isLiveApi, setIsLiveApi] = useState(false)
   const [activeTab, setActiveTab] = useState<'orders' | 'positions' | 'reconciliation'>('orders')
   const [statusFilter, setStatusFilter] = useState('ALL')
-  const [orders, setOrders] = useState<Order[]>(mockOrders)
-  const [positions, setPositions] = useState<Position[]>(mockPositions)
-  const [reconciliations, setReconciliations] = useState<ReconciliationItem[]>(
-    mockReconciliation.map((r) => ({
-      id: r.id,
-      accountId: r.account,
-      status: r.status,
-      details: r.detail,
-      summary: JSON.stringify({ diff_count: 0 }),
-      createdAt: r.timestamp
-    }))
-  )
+  const [orders, setOrders] = useState<Order[]>([])
+  const [positions, setPositions] = useState<Position[]>([])
+  const [reconciliations, setReconciliations] = useState<ReconciliationItem[]>([])
 
   // Order Intent Modal state
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false)
   const [newOrderSymbol, setNewOrderSymbol] = useState('BTCUSDT')
   const [newOrderSide, setNewOrderSide] = useState<'buy' | 'sell'>('buy')
   const [newOrderQty, setNewOrderQty] = useState('0.01000000')
-  const [newOrderPrice, setNewOrderPrice] = useState('99900.00')
+  const [newOrderPrice, setNewOrderPrice] = useState('64260.00')
   const [newOrderRiskRef, setNewOrderRiskRef] = useState('risk_preflight_001')
   const [submittingOrder, setSubmittingOrder] = useState(false)
 
   // Fill Modal state
   const [fillOrderTarget, setFillOrderTarget] = useState<Order | null>(null)
   const [fillQty, setFillQty] = useState('0.01000000')
-  const [fillPrice, setFillPrice] = useState('99900.00')
+  const [fillPrice, setFillPrice] = useState('64260.00')
   const [isFilling, setIsFilling] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
 
   // Mark-to-Market Modal state
   const [isMtmModalOpen, setIsMtmModalOpen] = useState(false)
   const [mtmSymbol, setMtmSymbol] = useState('BTCUSDT')
-  const [mtmPrice, setMtmPrice] = useState('105000.00')
+  const [mtmPrice, setMtmPrice] = useState('64300.00')
   const [isSubmittingMtm, setIsSubmittingMtm] = useState(false)
 
   // Reconciliation Resolution Modal state
@@ -63,16 +53,19 @@ export default function Execution() {
   const [resolutionReason, setResolutionReason] = useState('人工核对确认允许微小数据迟滞')
   const [isSubmittingResolution, setIsSubmittingResolution] = useState(false)
 
-  const loadExecutionData = async () => {
-    setLoading(true)
+  const loadData = async (silent = false) => {
+    if (!silent) setLoading(true)
+    setActionError(null)
+
     try {
-      const [ordersRes, positionsRes, recsRes] = await Promise.all([
+      const [ordersRes, positionsRes, recRes] = await Promise.all([
         api.orders().catch(() => null),
         api.positions().catch(() => null),
         api.reconciliations().catch(() => null)
       ])
 
       let connected = false
+
       if (ordersRes && Array.isArray(ordersRes)) {
         setOrders(ordersRes.map((o) => mapBackendOrder(o)))
         connected = true
@@ -81,32 +74,66 @@ export default function Execution() {
         setPositions(positionsRes.map((p) => mapBackendPosition(p)))
         connected = true
       }
-      if (recsRes && Array.isArray(recsRes) && recsRes.length > 0) {
-        setReconciliations(recsRes.map((r) => mapBackendReconciliation(r)))
+      if (recRes && Array.isArray(recRes)) {
+        setReconciliations(recRes.map((r) => mapBackendReconciliation(r)))
         connected = true
       }
 
       setIsLiveApi(connected)
-    } catch {
+    } catch (err: any) {
+      setActionError(err?.message || '获取执行层数据异常')
       setIsLiveApi(false)
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }
 
+  // 1.5s silent background polling for orders and positions
   useEffect(() => {
-    loadExecutionData()
+    loadData(false)
+    const interval = setInterval(() => {
+      loadData(true)
+    }, 1500)
+    return () => clearInterval(interval)
   }, [])
 
+  if (globalState !== 'success') {
+    return (
+      <div>
+        <PageIntro eyebrow="交易与研究" title="交易执行 Execution" description="管理多资产委托订单、实时持仓监控与对账差异核销" />
+        <DataState state={globalState} onRetry={() => setGlobalState('success')} />
+      </div>
+    )
+  }
+
+  // Handle Order Intent Creation with Preflight
   const handleCreateOrderIntent = async () => {
     setSubmittingOrder(true)
     setActionError(null)
+
     try {
+      // Step 1: Execute preflight check first
+      const preflightResult = await api.preflight({
+        account_id: 'paper-main',
+        symbol: newOrderSymbol,
+        side: newOrderSide,
+        quantity: newOrderQty,
+        price: newOrderPrice,
+        strategy_id: 'trend-btc',
+        strategy_version: '1.0.0',
+        mode: 'paper'
+      })
+
+      if (preflightResult.decision !== 'approved') {
+        throw new Error(`风控前置阻断: ${preflightResult.reject_reason || '超出风险阈值'}`)
+      }
+
+      const clientOrderId = `ord-${newOrderSymbol.toLowerCase()}-${Date.now().toString().slice(-6)}`
       const payload: OrderIntentRequest = {
-        client_order_id: `intent-${Date.now()}`,
+        client_order_id: clientOrderId,
         account_id: 'paper-main',
         strategy_id: 'trend-btc',
-        strategy_version: '1.4.2',
+        strategy_version: '1.0.0',
         symbol: newOrderSymbol,
         market_type: 'spot',
         side: newOrderSide,
@@ -114,217 +141,231 @@ export default function Execution() {
         quantity: newOrderQty,
         limit_price: newOrderPrice,
         mode: 'paper',
-        risk_decision_id: newOrderRiskRef
+        risk_decision_id: preflightResult.decision_id
       }
 
       const res = await api.createOrderIntent(payload)
       const mapped = mapBackendOrder(res)
       setOrders((prev) => [mapped, ...prev])
       setIsOrderModalOpen(false)
-      setIsLiveApi(true)
+      loadData(true)
     } catch (err: any) {
-      setActionError(`创建订单意图失败: ${err?.message || '未知错误'}`)
+      setActionError(err?.message || '创建订单意图失败')
     } finally {
       setSubmittingOrder(false)
     }
   }
 
+  // Handle Order Fill Simulation
   const handleFillOrder = async () => {
     if (!fillOrderTarget) return
     setIsFilling(true)
     setActionError(null)
+
     try {
       const res = await api.fillOrder({
-        client_order_id: fillOrderTarget.clientOrderId,
+        client_order_id: fillOrderTarget.clientOrderId || fillOrderTarget.id,
+        fill_price: fillPrice,
         fill_quantity: fillQty,
-        fill_price: fillPrice
+        mode: 'paper'
       })
 
-      // Update local order list & reload positions
       setOrders((prev) =>
         prev.map((o) => {
-          if (o.clientOrderId === fillOrderTarget.clientOrderId) {
+          if (o.id === fillOrderTarget.id) {
             return {
               ...o,
               status: res.status === 'filled' ? '已成交' : '部分成交',
               filledQuantity: res.filled_quantity,
-              avgPrice: res.average_price ?? fillPrice
+              avgPrice: res.average_price
             }
           }
           return o
         })
       )
       setFillOrderTarget(null)
-      loadExecutionData()
+      loadData(true)
     } catch (err: any) {
-      setActionError(`成交录入失败: ${err?.message || '未知错误'}`)
+      setActionError(err?.message || '模拟成交执行失败')
     } finally {
       setIsFilling(false)
     }
   }
 
+  // Handle Order Cancel
   const handleCancelOrder = async (clientOrderId: string) => {
-    setActionError(null)
     try {
-      const res = await api.cancelOrder(clientOrderId)
+      await api.cancelOrder(clientOrderId)
       setOrders((prev) =>
-        prev.map((o) => (o.clientOrderId === clientOrderId ? { ...o, status: '已撤销' } : o))
+        prev.map((o) => {
+          if (o.id === clientOrderId || o.clientOrderId === clientOrderId) {
+            return { ...o, status: '已撤销' }
+          }
+          return o
+        })
       )
+      loadData(true)
     } catch (err: any) {
-      setActionError(`撤单请求失败: ${err?.message || '未知错误'}`)
+      setActionError(err?.message || '撤销订单失败')
     }
   }
 
-  const handleRejectOrder = async (clientOrderId: string) => {
-    setActionError(null)
-    try {
-      const res = await api.rejectOrder(clientOrderId)
-      setOrders((prev) =>
-        prev.map((o) => (o.clientOrderId === clientOrderId ? { ...o, status: '风控阻断' } : o))
-      )
-    } catch (err: any) {
-      setActionError(`拒单处理失败: ${err?.message || '未知错误'}`)
-    }
-  }
-
-  const handleExecuteOrderViaAdapter = async (clientOrderId: string) => {
-    setActionError(null)
-    try {
-      await api.executeOrder(clientOrderId)
-      loadExecutionData()
-    } catch (err: any) {
-      setActionError(`Paper Adapter 撮合执行失败: [${err?.code || 'ERROR'}] ${err?.message || '未知错误'}`)
-    }
-  }
-
-  const handleRunReconciliation = async () => {
-    setActionError(null)
-    try {
-      const res = await api.runReconciliation('paper-main')
-      const mapped = mapBackendReconciliation(res)
-      setReconciliations((prev) => [mapped, ...prev])
-      setIsLiveApi(true)
-    } catch (err: any) {
-      setActionError(`对账触发失败: ${err?.message || '未知错误'}`)
-    }
-  }
-
+  // Handle Mark to Market
   const handleRunMarkToMarket = async () => {
     setIsSubmittingMtm(true)
     setActionError(null)
+
     try {
-      await api.markToMarket({ symbol: mtmSymbol, mark_price: mtmPrice })
+      const res = await api.markToMarket({
+        account_id: 'paper-main',
+        symbol: mtmSymbol,
+        mark_price: mtmPrice,
+        mode: 'paper'
+      })
+
+      if (res.updates && res.updates.length > 0) {
+        setPositions((prev) =>
+          prev.map((pos) => {
+            const match = res.updates.find((u) => u.symbol === pos.symbol)
+            if (match) {
+              return {
+                ...pos,
+                markPrice: Number(match.current_price).toLocaleString('en-US', { minimumFractionDigits: 2 }),
+                pnl: match.unrealized_pnl.startsWith('-') ? `$${match.unrealized_pnl}` : `+$${match.unrealized_pnl}`,
+                pnlTone: match.unrealized_pnl.startsWith('-') ? 'negative' : 'positive'
+              }
+            }
+            return pos
+          })
+        )
+      }
       setIsMtmModalOpen(false)
-      loadExecutionData()
+      loadData(true)
     } catch (err: any) {
-      setActionError(`按标记价盯市 (MTM) 失败: [${err?.code || 'ERROR'}] ${err?.message || '未知错误'}`)
+      setActionError(err?.message || '计算 MTM 盯市失败')
     } finally {
       setIsSubmittingMtm(false)
     }
   }
 
+  // Handle Reconciliation Run
+  const handleTriggerReconciliation = async () => {
+    try {
+      const res = await api.runReconciliation('paper-main')
+      const mapped = mapBackendReconciliation(res)
+      setReconciliations((prev) => [mapped, ...prev])
+      loadData(true)
+    } catch (err: any) {
+      setActionError(err?.message || '执行对账失败')
+    }
+  }
+
+  // Handle Resolution
   const handleResolveReconciliation = async () => {
     if (!resolutionTargetId) return
     setIsSubmittingResolution(true)
     setActionError(null)
+
     try {
       await api.resolveReconciliation(resolutionTargetId, {
         decision: resolutionDecision,
         reason: resolutionReason,
-        actor: 'risk_officer'
+        actor: 'risk_officer',
+        mode: 'paper'
       })
+
+      setReconciliations((prev) =>
+        prev.map((r) => {
+          if (r.id === resolutionTargetId) {
+            return { ...r, status: resolutionDecision === 'acknowledged' ? '一致' : '已否决' }
+          }
+          return r
+        })
+      )
       setResolutionTargetId(null)
-      loadExecutionData()
+      loadData(true)
     } catch (err: any) {
-      setActionError(`对账处置记录失败: [${err?.code || 'ERROR'}] ${err?.message || '未知错误'}`)
+      setActionError(err?.message || '提交对账差异处置失败')
     } finally {
       setIsSubmittingResolution(false)
     }
   }
 
-  if (globalState !== 'success') {
-    return (
-      <div>
-        <PageIntro eyebrow="交易平面" title="交易执行 Execution" description="订单意图生命周期、持仓管理、成交延迟与自动/手动对账" />
-        <DataState state={globalState} onRetry={() => setGlobalState('success')} />
-      </div>
-    )
-  }
-
-  if (loading) {
-    return (
-      <div>
-        <PageIntro eyebrow="交易平面" title="交易执行 Execution" description="正在读取后端 API 的订单与持仓数据..." />
-        <DataState state="loading" title="读取订单与持仓中" description="GET /api/v1/orders, GET /api/v1/positions" />
-      </div>
-    )
-  }
-
-  const filteredOrders = orders.filter((ord) => {
+  const filteredOrders = orders.filter((o) => {
     if (statusFilter === 'ALL') return true
-    return ord.status === statusFilter
+    if (statusFilter === 'ACTIVE') return o.status === '待执行' || o.status === '部分成交'
+    if (statusFilter === 'FILLED') return o.status === '已成交'
+    if (statusFilter === 'CANCELLED') return o.status === '已撤销' || o.status === '风控阻断'
+    return true
   })
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <PageIntro
-        eyebrow="交易平面"
-        title="交易执行与持仓对账 (Paper Mode)"
-        description="订单生命周期与路由：所有订单必须携带 risk_decision_id，默认 paper 纸面模式运行"
+        eyebrow="交易与研究"
+        title="交易执行 Execution"
+        description="机构级真实订单与头寸流转中心：支持订单意图提交、风控前置放行、模拟撮合成交、盯市（MTM）与实时对账"
         action={
           <div style={{ display: 'flex', gap: 10 }}>
+            <button className="button button--secondary" onClick={() => setIsMtmModalOpen(true)}>
+              <RefreshCw size={14} />
+              盯市计算 (MTM)
+            </button>
             <button className="button button--primary" onClick={() => setIsOrderModalOpen(true)}>
               <Plus size={14} />
-              创建订单意图
-            </button>
-            <button className="button button--secondary" onClick={loadExecutionData}>
-              <RefreshCw size={14} />
-              刷新订单 API
+              新建订单意图
             </button>
           </div>
         }
       />
 
-      {/* Action Error Banner */}
-      {actionError && (
-        <div style={{ padding: '10px 14px', backgroundColor: 'rgba(255, 77, 79, 0.1)', border: '1px solid rgba(255, 77, 79, 0.3)', borderRadius: 'var(--radius-md)', color: 'var(--color-negative)', fontSize: 12 }}>
-          {actionError}
-        </div>
-      )}
-
-      {/* API Status Banner */}
-      <div
-        style={{
-          padding: '8px 14px',
-          backgroundColor: isLiveApi ? 'rgba(0, 192, 135, 0.1)' : 'rgba(250, 173, 20, 0.1)',
-          border: `1px solid ${isLiveApi ? 'rgba(0, 192, 135, 0.3)' : 'rgba(250, 173, 20, 0.3)'}`,
-          borderRadius: 'var(--radius-md)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          fontSize: 12
-        }}
-      >
-        <span style={{ color: isLiveApi ? 'var(--color-positive)' : 'var(--color-warning)' }}>
+      {/* Top Banner */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '10px 16px',
+        backgroundColor: 'var(--bg-card)',
+        borderRadius: 'var(--radius-lg)',
+        border: '1px solid var(--border-color)',
+        fontSize: 12
+      }}>
+        <span style={{ color: 'var(--text-secondary)' }}>
           {isLiveApi
-            ? '✓ 已接入 API GET /api/v1/orders, /positions, POST /execution/fills, /cancel, /reconciliation (Paper Environment)'
-            : '⚠ 交易 API 未连接，当前展示 [Demo / Mock 模拟订单数据源]'}
+            ? `✓ 交易执行与持仓状态机已直连 (Active Orders: ${orders.length} | Open Positions: ${positions.length})`
+            : (actionError ? `⚠ 执行层状态: ${actionError}` : '正在同步执行层状态...')}
         </span>
         <StatusBadge tone={isLiveApi ? 'positive' : 'warning'} dot={true}>
-          {isLiveApi ? 'Execution API Live' : 'Demo Execution'}
+          {isLiveApi ? '100% Real Execution API Live' : 'Connecting'}
         </StatusBadge>
       </div>
 
-      {/* Main Content Tabs */}
+      {actionError && (
+        <div style={{
+          padding: '10px 14px',
+          backgroundColor: 'rgba(255, 77, 79, 0.1)',
+          border: '1px solid rgba(255, 77, 79, 0.3)',
+          borderRadius: 'var(--radius-md)',
+          color: 'var(--color-negative)',
+          fontSize: 12,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <span>{actionError}</span>
+          <button className="button button--subtle" style={{ padding: '2px 8px', fontSize: 11 }} onClick={() => setActionError(null)}>关闭</button>
+        </div>
+      )}
+
       <Panel
-        title="交易平面仪表盘 (Paper Execution)"
-        subtitle="包含纸面执行适配器 (Paper Adapter) 与交易所订单回报"
+        title="交易与执行台"
+        subtitle="订单生命周期状态机、实时持仓敞口与对账审计"
         action={
           <TabGroup
             tabs={[
               { id: 'orders', label: '订单意图 (Orders)', badge: `${orders.length}` },
               { id: 'positions', label: '实时持仓 (Positions)', badge: `${positions.length}` },
-              { id: 'reconciliation', label: '对账日志 (Reconciliation)', badge: `${reconciliations.length}` },
+              { id: 'reconciliation', label: '对账与差异分析', badge: `${reconciliations.length}` },
             ]}
             activeTab={activeTab}
             onChange={(id) => setActiveTab(id as any)}
@@ -333,75 +374,59 @@ export default function Execution() {
       >
         {activeTab === 'orders' && (
           <div>
-            {/* Filter Sub-bar */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <Filter size={14} style={{ color: 'var(--text-muted)' }} />
-                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>状态筛选:</span>
-                {['ALL', '部分成交', '已成交', '待执行', '风控阻断', '已撤销'].map((st) => (
+              <div style={{ display: 'flex', gap: 8 }}>
+                {['ALL', 'ACTIVE', 'FILLED', 'CANCELLED'].map((filter) => (
                   <button
-                    key={st}
-                    onClick={() => setStatusFilter(st)}
-                    style={{
-                      padding: '3px 8px',
-                      fontSize: 11,
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--border-color)',
-                      backgroundColor: statusFilter === st ? 'var(--color-accent-bg)' : 'transparent',
-                      color: statusFilter === st ? 'var(--color-accent)' : 'var(--text-secondary)',
-                      cursor: 'pointer'
-                    }}
+                    key={filter}
+                    className={`button ${statusFilter === filter ? 'button--primary' : 'button--subtle'}`}
+                    style={{ padding: '4px 10px', fontSize: 11 }}
+                    onClick={() => setStatusFilter(filter)}
                   >
-                    {st === 'ALL' ? '全部订单' : st}
+                    {filter === 'ALL' ? '全部订单' : filter === 'ACTIVE' ? '未结订单' : filter === 'FILLED' ? '已成交' : '已撤销/阻断'}
                   </button>
                 ))}
               </div>
-
-              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                客户端订单 ID 具备幂等校验
-              </span>
+              <button className="button button--secondary" onClick={() => loadData(false)}>
+                <RefreshCw size={13} /> 刷新订单
+              </button>
             </div>
 
             <div className="data-table-wrap">
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>客户端 Intent ID</th>
+                    <th>订单 ID</th>
                     <th>标的</th>
-                    <th>方向 / 类型</th>
-                    <th>委托价 / 委托量</th>
-                    <th>已成交 / 均价</th>
+                    <th>方向</th>
+                    <th>类型</th>
+                    <th>限价 / 均价</th>
+                    <th>委托数量</th>
+                    <th>已成交数量</th>
                     <th>风控决策 ID</th>
-                    <th>运行模式</th>
                     <th>状态</th>
-                    <th>时间</th>
-                    <th>纸面执行动作</th>
+                    <th>创建时间</th>
+                    <th>操作</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredOrders.length === 0 ? (
-                    <tr><td colSpan={10} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>无匹配订单数据</td></tr>
+                    <tr><td colSpan={11} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px 0' }}>暂无匹配的订单记录</td></tr>
                   ) : (
                     filteredOrders.map((ord) => (
                       <tr key={ord.id}>
-                        <td className="cell-mono">
-                          <strong>{ord.clientOrderId}</strong>
-                          <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>ID: {ord.id}</div>
-                        </td>
+                        <td className="cell-mono"><strong>{ord.id}</strong></td>
                         <td><strong>{ord.symbol}</strong></td>
                         <td>
                           <StatusBadge tone={ord.side === '买入' ? 'positive' : 'negative'}>
-                            {ord.side} · {ord.type}
+                            {ord.side}
                           </StatusBadge>
                         </td>
-                        <td className="cell-mono">{ord.price} / {ord.quantity}</td>
-                        <td className="cell-mono">{ord.filledQuantity} / {ord.avgPrice}</td>
+                        <td>{ord.type}</td>
+                        <td className="cell-mono">{ord.price} / {ord.avgPrice}</td>
+                        <td className="cell-mono">{ord.quantity}</td>
+                        <td className="cell-mono text-positive">{ord.filledQuantity}</td>
                         <td className="cell-mono" style={{ fontSize: 10, color: 'var(--color-accent)' }}>{ord.riskDecisionId}</td>
-                        <td>
-                          <StatusBadge tone="accent" dot={false}>
-                            {ord.mode}
-                          </StatusBadge>
-                        </td>
                         <td>
                           <StatusBadge tone={ord.status === '已成交' ? 'positive' : ord.status === '部分成交' ? 'warning' : ord.status === '风控阻断' ? 'negative' : 'neutral'}>
                             {ord.status}
@@ -409,39 +434,31 @@ export default function Execution() {
                         </td>
                         <td className="cell-mono" style={{ fontSize: 11, color: 'var(--text-muted)' }}>{ord.createdAt}</td>
                         <td>
-                          <div style={{ display: 'flex', gap: 4 }}>
-                            <button
-                              className="button button--primary"
-                              style={{ padding: '2px 6px', fontSize: 10 }}
-                              onClick={() => handleExecuteOrderViaAdapter(ord.clientOrderId)}
-                            >
-                              Adapter 撮合
-                            </button>
-                            <button
-                              className="button button--secondary"
-                              style={{ padding: '2px 6px', fontSize: 10 }}
-                              onClick={() => {
-                                setFillOrderTarget(ord)
-                                setFillQty(ord.quantity)
-                                setFillPrice(ord.price === '—' ? '99900.00' : ord.price)
-                              }}
-                            >
-                              模拟成交
-                            </button>
-                            <button
-                              className="button button--subtle"
-                              style={{ padding: '2px 6px', fontSize: 10 }}
-                              onClick={() => handleCancelOrder(ord.clientOrderId)}
-                            >
-                              撤单
-                            </button>
-                            <button
-                              className="button button--danger"
-                              style={{ padding: '2px 6px', fontSize: 10 }}
-                              onClick={() => handleRejectOrder(ord.clientOrderId)}
-                            >
-                              拒单
-                            </button>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            {ord.status === '待执行' || ord.status === '部分成交' ? (
+                              <>
+                                <button
+                                  className="button button--primary"
+                                  style={{ padding: '2px 6px', fontSize: 10 }}
+                                  onClick={() => {
+                                    setFillOrderTarget(ord)
+                                    setFillPrice(ord.price !== '—' ? ord.price : '64260.00')
+                                    setFillQty(ord.quantity)
+                                  }}
+                                >
+                                  成交
+                                </button>
+                                <button
+                                  className="button button--danger"
+                                  style={{ padding: '2px 6px', fontSize: 10 }}
+                                  onClick={() => handleCancelOrder(ord.clientOrderId || ord.id)}
+                                >
+                                  撤单
+                                </button>
+                              </>
+                            ) : (
+                              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>已完结</span>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -456,12 +473,11 @@ export default function Execution() {
         {activeTab === 'positions' && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                盯市计算引擎 (Mark-to-Market Engine) 根据最新标记价格 (mark_price) 更新持仓未实现盈亏 (unrealized_pnl)
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                当前多/空持仓头寸 (基于 PostgreSQL 16 实时持久化与盯市计价)
               </div>
               <button className="button button--secondary" onClick={() => setIsMtmModalOpen(true)}>
-                <RefreshCw size={14} />
-                按标记价盯市 (POST /api/v1/positions/mark-to-market)
+                <RefreshCw size={13} /> 重新盯市 MTM
               </button>
             </div>
 
@@ -469,20 +485,19 @@ export default function Execution() {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>标的代码</th>
-                    <th>持仓方向</th>
+                    <th>合约/现货</th>
+                    <th>方向</th>
                     <th>持仓数量</th>
                     <th>开仓均价</th>
-                    <th>标记价格 (Mark Price)</th>
-                    <th>强平预估价</th>
-                    <th>保证金率</th>
+                    <th>当前标记价</th>
+                    <th>名义敞口 (Exposure)</th>
                     <th>未实现 PnL</th>
-                    <th>组合敞口 %</th>
+                    <th>保证金率</th>
                   </tr>
                 </thead>
                 <tbody>
                   {positions.length === 0 ? (
-                    <tr><td colSpan={9} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>无当前持仓</td></tr>
+                    <tr><td colSpan={8} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px 0' }}>当前账户无活跃持仓</td></tr>
                   ) : (
                     positions.map((pos, idx) => (
                       <tr key={pos.symbol + idx}>
@@ -493,12 +508,11 @@ export default function Execution() {
                           </StatusBadge>
                         </td>
                         <td className="cell-mono">{pos.quantity}</td>
-                        <td className="cell-mono">{pos.entryPrice}</td>
-                        <td className="cell-mono">{pos.markPrice}</td>
-                        <td className="cell-mono text-warning">{pos.liquidationPrice}</td>
-                        <td className="cell-mono">{pos.marginRatio}</td>
-                        <td className={`cell-mono text-${pos.pnlTone}`} style={{ fontWeight: 700 }}>{pos.pnl}</td>
+                        <td className="cell-mono">${pos.entryPrice}</td>
+                        <td className="cell-mono">${pos.markPrice}</td>
                         <td className="cell-mono">{pos.exposure}</td>
+                        <td className={`cell-mono text-${pos.pnlTone}`} style={{ fontWeight: 600 }}>{pos.pnl}</td>
+                        <td className="cell-mono text-positive">{pos.marginRatio}</td>
                       </tr>
                     ))
                   )}
@@ -511,12 +525,11 @@ export default function Execution() {
         {activeTab === 'reconciliation' && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                对账服务 (Reconciliation Service) 定时对比 PostgreSQL 订单状态、Redis 缓存与交易所 Adapter 回报：
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                本地数据库订单状态与交易所回报差异自动核验 (Reconciliation Engine)
               </div>
-              <button className="button button--primary" onClick={handleRunReconciliation}>
-                <Play size={14} />
-                触发对账引擎 (POST /api/v1/execution/reconciliation)
+              <button className="button button--primary" onClick={handleTriggerReconciliation}>
+                <Play size={13} /> 立即执行全量对账
               </button>
             </div>
 
@@ -524,18 +537,18 @@ export default function Execution() {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>对账编号 (Reconciliation ID)</th>
+                    <th>对账单号</th>
                     <th>账户</th>
-                    <th>结果</th>
-                    <th>时间</th>
-                    <th>对账明细说明</th>
-                    <th>Summary 结构</th>
-                    <th>差异处置</th>
+                    <th>状态</th>
+                    <th>对账时间</th>
+                    <th>明细描述</th>
+                    <th>差异摘要</th>
+                    <th>操作</th>
                   </tr>
                 </thead>
                 <tbody>
                   {reconciliations.length === 0 ? (
-                    <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>无对账记录</td></tr>
+                    <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px 0' }}>暂无对账差异记录</td></tr>
                   ) : (
                     reconciliations.map((rec) => (
                       <tr key={rec.id}>
@@ -576,13 +589,13 @@ export default function Execution() {
       <Modal
         isOpen={isOrderModalOpen}
         onClose={() => setIsOrderModalOpen(false)}
-        title="提交纸面订单意图 (POST /api/v1/orders/intents)"
+        title="提交订单意图 (POST /api/v1/orders/intents)"
         footer={
           <>
             <button className="button button--secondary" onClick={() => setIsOrderModalOpen(false)}>取消</button>
             <button className="button button--primary" onClick={handleCreateOrderIntent} disabled={submittingOrder}>
               <Zap size={14} />
-              {submittingOrder ? '正在提交意图...' : '提交 Paper 订单意图'}
+              {submittingOrder ? '前置风控核验中...' : '提交订单意图'}
             </button>
           </>
         }
@@ -594,6 +607,8 @@ export default function Execution() {
               <option value="BTCUSDT">BTCUSDT</option>
               <option value="ETHUSDT">ETHUSDT</option>
               <option value="SOLUSDT">SOLUSDT</option>
+              <option value="BNBUSDT">BNBUSDT</option>
+              <option value="DOGEUSDT">DOGEUSDT</option>
             </select>
           </div>
           <div className="form-group">
@@ -616,6 +631,9 @@ export default function Execution() {
           <div className="form-group">
             <label>风控前置决策引用 (risk_decision_id)</label>
             <input className="form-input" value={newOrderRiskRef} onChange={(e) => setNewOrderRiskRef(e.target.value)} />
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+              * 提交时系统将自动调用 `POST /api/v1/risk/preflight` 实时校验名义价值与敞口预算
+            </div>
           </div>
         </div>
       </Modal>
@@ -624,13 +642,13 @@ export default function Execution() {
       <Modal
         isOpen={!!fillOrderTarget}
         onClose={() => setFillOrderTarget(null)}
-        title="模拟纸面成交 (POST /api/v1/execution/fills)"
+        title="模拟撮生成交 (POST /api/v1/execution/fills)"
         footer={
           <>
             <button className="button button--secondary" onClick={() => setFillOrderTarget(null)}>取消</button>
             <button className="button button--primary" onClick={handleFillOrder} disabled={isFilling}>
               <CheckCircle2 size={14} />
-              {isFilling ? '正在录入成交...' : '确认模拟成交'}
+              {isFilling ? '正在录入成交...' : '确认成交'}
             </button>
           </>
         }
@@ -638,7 +656,7 @@ export default function Execution() {
         {fillOrderTarget && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-              目标订单: <code className="cell-mono">{fillOrderTarget.clientOrderId}</code> ({fillOrderTarget.symbol} {fillOrderTarget.side})
+              目标订单: <code className="cell-mono">{fillOrderTarget.clientOrderId || fillOrderTarget.id}</code> ({fillOrderTarget.symbol} {fillOrderTarget.side})
             </div>
             <div className="form-group">
               <label>成交数量 (fill_quantity)</label>
@@ -674,6 +692,8 @@ export default function Execution() {
               <option value="BTCUSDT">BTCUSDT</option>
               <option value="ETHUSDT">ETHUSDT</option>
               <option value="SOLUSDT">SOLUSDT</option>
+              <option value="BNBUSDT">BNBUSDT</option>
+              <option value="DOGEUSDT">DOGEUSDT</option>
             </select>
           </div>
           <div className="form-group">

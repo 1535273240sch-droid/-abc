@@ -103,6 +103,8 @@ class CredentialService:
             "updated_by": requested_by,
         }
         self._store.exchange_connections[connection_id] = record
+        if hasattr(self._store, "save"):
+            self._store.save()
         self.refresh_live_adapters()
 
         event_bus.publish(DomainEvent(
@@ -125,6 +127,8 @@ class CredentialService:
         if record.get("environment") == "paper":
             raise QuantError("VALIDATION_ERROR", "Paper connections are managed by the system", status_code=400)
         del self._store.exchange_connections[connection_id]
+        if hasattr(self._store, "save"):
+            self._store.save()
         self.refresh_live_adapters()
         event_bus.publish(DomainEvent(
             event_type=event_type("credentials", "deleted"),
@@ -213,11 +217,13 @@ class CredentialService:
         except QuantError as exc:
             record["last_error"] = exc.message
             return {"connection_id": connection_id, "status": "not_configured", "message": exc.message, "tested_at": _now()}
+        is_demo = record.get("environment") == "testnet" or "testnet" in str(record.get("connection_id", "")).lower()
         adapter = build_live_adapter(
             record["adapter_name"],
             creds,
             base_url=record.get("base_url"),
             dry_run=True,
+            is_demo=is_demo,
         )
         try:
             adapter.connect()
@@ -246,10 +252,12 @@ class CredentialService:
                 continue
             try:
                 creds = self.resolve(record["connection_id"])
+                is_demo = record.get("environment") == "testnet"
                 adapter = build_live_adapter(
                     record["adapter_name"], creds,
                     base_url=record.get("base_url"),
                     dry_run=not settings.live_trading_enabled,
+                    is_demo=is_demo,
                 )
             except (QuantError, AdapterError) as exc:
                 logger.warning("live_adapter_wire_failed", connection_id=record["connection_id"], error=str(exc)[:200])

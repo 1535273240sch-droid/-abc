@@ -23,9 +23,11 @@ dicts can be dropped.
 
 from __future__ import annotations
 
+from app.core.config import settings
 import logging
 import uuid
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Any
 
 from app.db.memory import InMemoryStore
@@ -102,12 +104,12 @@ class DBStore(InMemoryStore):
         self.kill_switch_state: Any = None
         self.strategy_states: dict = {}
 
-        # Initialise services (same as InMemoryStore)
-        self._init_services()
-
         import threading
         self._lock = threading.RLock()
         self.persistence_error: str | None = None
+
+        # Initialise services (same as InMemoryStore)
+        self._init_services()
 
         # Load from database
         self._load()
@@ -154,6 +156,7 @@ class DBStore(InMemoryStore):
         self.live_mode_service = LiveModeService(self)
         self.live_risk_service = LiveRiskService(self)
         self.credential_service = CredentialService(self)
+        self.kline_service = KlineService()
         self.historical_data_service = HistoricalDataService(kline_service=self.kline_service)
         self.adapter_service = AdapterService(self)
         self.portfolio_target_service = PortfolioTargetService(self)
@@ -162,7 +165,12 @@ class DBStore(InMemoryStore):
         self.alert_service = AlertService(self)
         self.control_service = ControlService(self)
         self.ai_service = AIService(self)
-        self.kline_service = KlineService()
+        from app.services.alpha_mining_service import AlphaMiningService
+        from app.services.portfolio_optimizer_service import PortfolioOptimizerService
+        from app.services.strategy_evolution_service import StrategyEvolutionService
+        self.alpha_mining_service = AlphaMiningService(self)
+        self.portfolio_optimizer_service = PortfolioOptimizerService(self)
+        self.strategy_evolution_service = StrategyEvolutionService(self)
         self.alert_notification_service = AlertNotificationService(self)
         self.live_guard_service = LiveGuardService(self)
 
@@ -468,23 +476,60 @@ class DBStore(InMemoryStore):
 
                 # Exchange connections
                 for row in session.query(M.ExchangeConnectionModel).all():
+                    cfg = row.config or {}
+                    adapter_name = cfg.get("adapter_name") or row.exchange or (row.connection_id.split("-")[0] if "-" in row.connection_id else "paper")
                     self.exchange_connections[row.connection_id] = {
                         "connection_id": row.connection_id,
-                        "exchange": row.exchange,
-                        "status": row.status,
-                        "config": row.config or {},
+                        "adapter_name": adapter_name,
+                        "exchange": row.exchange or adapter_name,
+                        "display_name": cfg.get("display_name") or (f"{adapter_name.upper()} Adapter" if adapter_name else "Exchange"),
+                        "environment": cfg.get("environment") or "paper",
+                        "secret_ref": cfg.get("secret_ref"),
+                        "credential_token": cfg.get("credential_token"),
+                        "credential_fingerprint": cfg.get("credential_fingerprint"),
+                        "has_passphrase": bool(cfg.get("has_passphrase")),
+                        "base_url": cfg.get("base_url"),
+                        "enabled": bool(cfg.get("enabled", True)),
+                        "status": row.status or "disconnected",
+                        "config": cfg,
                         "connected_at": row.connected_at,
                         "disconnected_at": row.disconnected_at,
+                        "updated_at": cfg.get("updated_at") or row.created_at,
                     }
 
                 # AI providers
+                import json
+                from app.core.secrets import secret_resolver
                 for row in session.query(M.AIProviderModel).all():
+                    cfg = row.config or {}
+                    if isinstance(cfg, str):
+                        try:
+                            cfg = json.loads(cfg)
+                        except Exception:
+                            cfg = {}
+                    default_base_urls = {
+                        "openai": "https://api.openai.com/v1",
+                        "deepseek": "https://api.deepseek.com/v1",
+                        "gemini": "https://generativelanguage.googleapis.com/v1beta",
+                        "stepfun": "https://api.stepfun.com/step_plan/v1",
+                        "claude": "https://api.anthropic.com/v1",
+                    }
+                    sec_ref = cfg.get("secret_ref")
+                    resolved = secret_resolver.resolve(sec_ref) if sec_ref else None
+                    ready = bool(resolved and cfg.get("enabled", True) and cfg.get("model") != "not-configured")
                     self.model_providers[row.provider_id] = {
                         "provider_id": row.provider_id,
-                        "provider_type": row.provider_type,
-                        "name": row.name,
-                        "config": row.config or {},
-                        "status": row.status,
+                        "display_name": row.name or cfg.get("display_name") or row.provider_id,
+                        "base_url": cfg.get("base_url") or default_base_urls.get(row.provider_id, "https://api.stepfun.com/step_plan/v1" if row.provider_id == "stepfun" else "https://not-configured.local/v1"),
+                        "model": cfg.get("model", "step-3.7-flash" if row.provider_id == "stepfun" else "not-configured"),
+                        "secret_ref": sec_ref or ("GOd9RlLdrPZMObUADR03isuY40deMsycRDrgpezE9bswtictTXVatfkH77CZwH6S" if row.provider_id == "stepfun" else None),
+                        "enabled": bool(cfg.get("enabled", True if row.provider_id == "stepfun" else False)),
+                        "capabilities": cfg.get("capabilities", ["chat", "reasoning", "market_analysis"]),
+                        "status": "secret_resolved" if resolved else (row.status or "not_configured"),
+                        "runtime_ready": ready,
+                        "updated_at": cfg.get("updated_at") or row.created_at,
+                        "last_test_at": cfg.get("last_test_at"),
+                        "last_error": cfg.get("last_error"),
                     }
 
                 # MTM logs
@@ -578,14 +623,14 @@ class DBStore(InMemoryStore):
                 "strategy_id": order.strategy_id,
                 "strategy_version": order.strategy_version,
                 "symbol": order.symbol,
-                "market_type": order.market_type.value,
-                "side": order.side.value,
-                "order_type": order.order_type.value,
+                "market_type": getattr(order.market_type, "value", order.market_type),
+                "side": getattr(order.side, "value", order.side),
+                "order_type": getattr(order.order_type, "value", order.order_type),
                 "quantity": order.quantity,
                 "limit_price": order.limit_price,
-                "mode": order.mode.value,
+                "mode": getattr(order.mode, "value", order.mode),
                 "risk_decision_id": order.risk_decision_id,
-                "status": order.status.value,
+                "status": getattr(order.status, "value", order.status),
                 "filled_quantity": order.filled_quantity,
                 "average_price": order.average_price,
                 "reject_reason": order.reject_reason,
@@ -600,10 +645,10 @@ class DBStore(InMemoryStore):
                 "client_order_id": fill.client_order_id,
                 "account_id": fill.account_id,
                 "symbol": fill.symbol,
-                "side": fill.side.value,
+                "side": getattr(fill.side, "value", fill.side),
                 "fill_quantity": fill.fill_quantity,
                 "fill_price": fill.fill_price,
-                "trade_mode": fill.trade_mode.value,
+                "trade_mode": getattr(fill.trade_mode, "value", fill.trade_mode),
                 "created_at": fill.created_at,
             })
 
@@ -611,17 +656,17 @@ class DBStore(InMemoryStore):
         for did, dec in self.risk_decisions.items():
             self._upsert(session, M.RiskDecisionModel, "decision_id", did, {
                 "decision_id": did,
-                "decision": dec.decision.value,
+                "decision": getattr(dec.decision, "value", dec.decision),
                 "account_id": dec.account_id,
                 "symbol": dec.symbol,
-                "side": dec.side.value,
+                "side": getattr(dec.side, "value", dec.side),
                 "quantity": dec.quantity,
                 "strategy_id": dec.strategy_id,
                 "strategy_version": dec.strategy_version,
                 "reject_reason": dec.reject_reason,
                 "remaining_risk_budget": dec.remaining_risk_budget,
                 "rules_checked": dec.rules_checked,
-                "mode": dec.mode.value,
+                "mode": getattr(dec.mode, "value", dec.mode),
                 "price": dec.price,
                 "notional": dec.notional,
                 "consumed_by": getattr(dec, "consumed_by", None),
@@ -634,8 +679,8 @@ class DBStore(InMemoryStore):
                 "position_id": pid,
                 "account_id": pos.account_id,
                 "symbol": pos.symbol,
-                "market_type": pos.market_type.value,
-                "side": pos.side.value,
+                "market_type": getattr(pos.market_type, "value", pos.market_type),
+                "side": getattr(pos.side, "value", pos.side),
                 "quantity": pos.quantity,
                 "entry_price": pos.entry_price,
                 "current_price": pos.current_price,
@@ -653,12 +698,12 @@ class DBStore(InMemoryStore):
                 "version": strat.version,
                 "description": strat.description,
                 "parameters": strat.parameters,
-                "status": strat.status,
-                "code_ref": strat.code_ref,
-                "owner": strat.owner,
-                "kind": strat.kind,
-                "created_at": strat.created_at,
-                "updated_at": strat.updated_at,
+                "status": getattr(strat.status, "value", strat.status) if hasattr(strat, "status") else "active",
+                "code_ref": getattr(strat, "code_ref", None),
+                "owner": getattr(strat, "owner", "system"),
+                "kind": getattr(strat, "kind", "custom"),
+                "created_at": getattr(strat, "created_at", None),
+                "updated_at": getattr(strat, "updated_at", None),
             })
 
     def _save_symbols(self, session, M):
@@ -667,11 +712,11 @@ class DBStore(InMemoryStore):
                 "symbol": sym_str,
                 "base_asset": sym.base_asset,
                 "quote_asset": sym.quote_asset,
-                "market_type": sym.market_type.value,
+                "market_type": getattr(sym.market_type, "value", sym.market_type),
                 "min_qty": sym.min_qty,
                 "max_qty": sym.max_qty,
                 "tick_size": sym.tick_size,
-                "status": sym.status,
+                "status": getattr(sym.status, "value", sym.status) if hasattr(sym, "status") else "active",
             })
 
     def _save_tickers(self, session, M):
@@ -713,7 +758,7 @@ class DBStore(InMemoryStore):
             if not existing:
                 session.add(M.AuditEventModel(
                     event_id=event.event_id,
-                    event_type=str(event.event_type),
+                    event_type=str(getattr(event.event_type, "value", event.event_type)),
                     actor=event.actor,
                     resource_type=event.resource_type,
                     resource_id=event.resource_id,
@@ -732,7 +777,7 @@ class DBStore(InMemoryStore):
                 session.add(M.ReconciliationLogModel(
                     reconciliation_id=log.reconciliation_id,
                     account_id=log.account_id,
-                    status=log.status.value,
+                    status=getattr(log.status, "value", log.status),
                     details=log.details,
                     summary=log.summary,
                     created_at=log.created_at,
@@ -748,7 +793,7 @@ class DBStore(InMemoryStore):
                     resolution_id=rec.resolution_id,
                     reconciliation_id=rec.reconciliation_id,
                     account_id=rec.account_id,
-                    decision=rec.decision.value,
+                    decision=getattr(rec.decision, "value", rec.decision),
                     reason=rec.reason,
                     actor=rec.actor,
                     idempotency_key=rec.idempotency_key,
@@ -759,12 +804,12 @@ class DBStore(InMemoryStore):
         for aid, appr in self.approvals.items():
             self._upsert(session, M.ApprovalModel, "approval_id", aid, {
                 "approval_id": aid,
-                "resource_type": appr.resource_type.value,
+                "resource_type": getattr(appr.resource_type, "value", appr.resource_type),
                 "resource_id": appr.resource_id,
                 "requested_by": appr.requested_by,
                 "title": appr.title,
                 "details": appr.details,
-                "status": appr.status.value,
+                "status": getattr(appr.status, "value", appr.status),
                 "decided_by": appr.decided_by,
                 "reject_reason": appr.reject_reason,
                 "ttl_seconds": appr.ttl_seconds,
@@ -777,7 +822,7 @@ class DBStore(InMemoryStore):
         if self.kill_switch_state:
             ks = self.kill_switch_state
             session.add(M.KillSwitchModel(
-                status=ks.status.value,
+                status=getattr(ks.status, "value", ks.status),
                 triggered_by=ks.triggered_by,
                 trigger_reason=ks.trigger_reason,
                 triggered_at=ks.triggered_at,
@@ -798,10 +843,10 @@ class DBStore(InMemoryStore):
                 "slippage_model": bt.slippage_model,
                 "run_environment": bt.run_environment,
                 "initial_capital": bt.initial_capital,
-                "mode": bt.mode.value,
+                "mode": getattr(bt.mode, "value", bt.mode),
                 "idempotency_key": bt.idempotency_key,
                 "code_ref": bt.code_ref,
-                "status": bt.status.value,
+                "status": getattr(bt.status, "value", bt.status),
                 "net_profit": bt.net_profit,
                 "sharpe_ratio": bt.sharpe_ratio,
                 "max_drawdown": bt.max_drawdown,
@@ -823,7 +868,7 @@ class DBStore(InMemoryStore):
                 "current_quantity": pt.current_quantity,
                 "target_weight": pt.target_weight,
                 "delta": pt.delta,
-                "mode": pt.mode.value,
+                "mode": getattr(pt.mode, "value", pt.mode),
                 "idempotency_key": pt.idempotency_key,
                 "created_at": pt.created_at,
                 "updated_at": pt.updated_at,
@@ -836,9 +881,9 @@ class DBStore(InMemoryStore):
                 "strategy_id": sr.strategy_id,
                 "strategy_version": sr.strategy_version,
                 "account_id": sr.account_id,
-                "mode": sr.mode.value,
+                "mode": getattr(sr.mode, "value", sr.mode),
                 "dry_run": sr.dry_run,
-                "status": sr.status,
+                "status": getattr(sr.status, "value", sr.status),
                 "data_quality": sr.data_quality,
                 "signals": sr.signals,
                 "orders": sr.orders,
@@ -865,11 +910,25 @@ class DBStore(InMemoryStore):
 
     def _save_exchange_connections(self, session, M):
         for cid, conn in self.exchange_connections.items():
+            adapter_name = conn.get("adapter_name") or conn.get("exchange") or (cid.split("-")[0] if "-" in cid else "paper")
+            conn_config = dict(conn.get("config", {}) if isinstance(conn.get("config"), dict) else {})
+            conn_config.update({
+                "adapter_name": adapter_name,
+                "display_name": conn.get("display_name") or f"{adapter_name.upper()} Adapter",
+                "environment": conn.get("environment", "paper"),
+                "secret_ref": conn.get("secret_ref"),
+                "credential_token": conn.get("credential_token"),
+                "credential_fingerprint": conn.get("credential_fingerprint"),
+                "has_passphrase": bool(conn.get("has_passphrase")),
+                "base_url": conn.get("base_url"),
+                "enabled": conn.get("enabled", True),
+                "updated_at": conn.get("updated_at").isoformat() if isinstance(conn.get("updated_at"), datetime) else str(conn.get("updated_at") or utcnow().isoformat()),
+            })
             self._upsert(session, M.ExchangeConnectionModel, "connection_id", cid, {
                 "connection_id": cid,
-                "exchange": conn.get("exchange", ""),
+                "exchange": adapter_name,
                 "status": conn.get("status", "disconnected"),
-                "config": conn.get("config", {}),
+                "config": conn_config,
                 "connected_at": conn.get("connected_at"),
                 "disconnected_at": conn.get("disconnected_at"),
                 "created_at": conn.get("created_at", utcnow()),

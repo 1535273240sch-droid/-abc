@@ -1,13 +1,16 @@
-"""Historical kline data import and management.
+"""Historical market data ingestion, persistence and retrieval service.
 
 Feeds the backtest engine with durable OHLCV data. Supports:
 
 1. Binance public REST — paginated download (max 1000 per request)
-2. CSV upload — headerless ``timestamp,open,high,low,close,volume``
+2. CSV upload — headerless or header-based ``timestamp,open,high,low,close,volume``
+3. Parquet upload — multi-period (1m, 5m, 15m, 1h, 4h, 1d) with automatic schema normalization
 
 Persistence hooks into the ``HistoricalKlineModel`` table when PostgreSQL
 is available, otherwise keeps data in the KlineService in-memory buffer.
 """
+
+from __future__ import annotations
 
 import csv
 import io
@@ -18,6 +21,7 @@ import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from decimal import Decimal
+from pathlib import Path
 from typing import Any
 
 from app.core.config import settings
@@ -29,8 +33,12 @@ logger = get_logger(__name__)
 _BINANCE_KLINES_URL = "https://api.binance.com/api/v3/klines"
 _MAX_FETCH_LIMIT = 1000
 _PERIOD_MS: dict[str, int] = {
-    "1m": 60_000, "5m": 300_000, "15m": 900_000,
-    "1h": 3_600_000, "4h": 14_400_000, "1d": 86_400_000,
+    "1m": 60_000,
+    "5m": 300_000,
+    "15m": 900_000,
+    "1h": 3_600_000,
+    "4h": 14_400_000,
+    "1d": 86_400_000,
 }
 
 
@@ -69,8 +77,11 @@ class HistoricalDataService:
 
         while cursor < end_ms:
             params = urllib.parse.urlencode({
-                "symbol": symbol, "interval": period,
-                "startTime": cursor, "endTime": end_ms, "limit": _MAX_FETCH_LIMIT,
+                "symbol": symbol,
+                "interval": period,
+                "startTime": cursor,
+                "endTime": end_ms,
+                "limit": _MAX_FETCH_LIMIT,
             })
             url = f"{_BINANCE_KLINES_URL}?{params}"
             try:
@@ -177,6 +188,117 @@ class HistoricalDataService:
             "time_range": f"{bars[0].open_time}-{bars[-1].close_time}" if bars else "empty",
         }
 
+    # ── Parquet import ────────────────────────────────────────────────
+
+    def import_parquet(
+        self,
+        symbol: str,
+        period: str,
+        parquet_source: bytes | str | Path | io.BytesIO,
+    ) -> dict:
+        """Parse Parquet data into Bar objects. Returns stats dict.
+
+        Supports file paths, raw bytes, or BytesIO buffers.
+        Standard columns supported (case-insensitive):
+        - open_time / timestamp / datetime / time / date
+        - open, high, low, close, volume (or vol)
+        """
+        import pandas as pd
+
+        symbol = symbol.upper()
+        if period not in _PERIOD_MS:
+            raise ValueError(f"unsupported period '{period}', supported: {list(_PERIOD_MS)}")
+
+        if isinstance(parquet_source, bytes):
+            source: Any = io.BytesIO(parquet_source)
+        elif isinstance(parquet_source, (str, Path)):
+            source = str(parquet_source)
+        else:
+            source = parquet_source
+
+        try:
+            df = pd.read_parquet(source)
+        except Exception as exc:
+            raise ValueError(f"failed to read parquet data: {exc}") from exc
+
+        if df.empty:
+            return {
+                "symbol": symbol,
+                "period": period,
+                "bars_imported": 0,
+                "errors": 0,
+                "time_range": "empty",
+            }
+
+        # Normalize column names to lowercase
+        cols = {str(c).lower().strip(): c for c in df.columns}
+
+        # Find time column
+        time_col = None
+        for cand in ("open_time", "timestamp", "datetime", "date", "time", "open_time_ms", "ts"):
+            if cand in cols:
+                time_col = cols[cand]
+                break
+        if time_col is None:
+            raise ValueError(f"missing timestamp column in parquet, columns found: {list(df.columns)}")
+
+        # Find OHLCV columns
+        req_cols = {}
+        for req in ("open", "high", "low", "close", "volume"):
+            found = cols.get(req)
+            if not found and req == "volume":
+                found = cols.get("vol")
+            if not found:
+                raise ValueError(f"missing required column '{req}' in parquet, columns found: {list(df.columns)}")
+            req_cols[req] = found
+
+        bars: list[Bar] = []
+        errors = 0
+        period_ms = _PERIOD_MS[period]
+
+        for _, row in df.iterrows():
+            try:
+                raw_time = row[time_col]
+                open_time = _parse_timestamp(raw_time)
+                o = Decimal(str(row[req_cols["open"]]))
+                h = Decimal(str(row[req_cols["high"]]))
+                l = Decimal(str(row[req_cols["low"]]))
+                c = Decimal(str(row[req_cols["close"]]))
+                v = Decimal(str(row[req_cols["volume"]]))
+
+                bars.append(Bar(
+                    symbol=symbol,
+                    open_time=open_time,
+                    open=o,
+                    high=h,
+                    low=l,
+                    close=c,
+                    volume=v,
+                    close_time=open_time + period_ms - 1,
+                ))
+            except Exception:
+                errors += 1
+
+        bars.sort(key=lambda b: b.open_time)
+
+        # Ingest and persist
+        if bars:
+            if self._persist_fn:
+                try:
+                    self._persist_fn(symbol, period, bars)
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning("historical_parquet_persist_error", symbol=symbol, error=str(exc)[:200])
+            if self._kline_service:
+                self._kline_service.ingest(symbol, period, bars)
+
+        return {
+            "symbol": symbol,
+            "period": period,
+            "bars_imported": len(bars),
+            "errors": errors,
+            "time_range": f"{bars[0].open_time}-{bars[-1].close_time}" if bars else "empty",
+        }
+
     # ── query ───────────────────────────────────────────────────────
 
     def get_bars(self, symbol: str, period: str, limit: int = 10000) -> list[Bar]:
@@ -217,3 +339,15 @@ def _parse_time(value: str) -> int:
         except ValueError:
             continue
     raise ValueError(f"cannot parse time: {value!r}")
+
+
+def _parse_timestamp(value: Any) -> int:
+    """Convert int/float/str/Timestamp/datetime to unix ms integer."""
+    if isinstance(value, (int, float)):
+        # If seconds (e.g. < 1e11), convert to ms
+        if value < 100_000_000_000:
+            return int(value * 1000)
+        return int(value)
+    if hasattr(value, "timestamp"):
+        return int(value.timestamp() * 1000)
+    return _parse_time(str(value))

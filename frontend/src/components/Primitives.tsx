@@ -2,34 +2,28 @@ import type { ReactNode } from 'react'
 import { AlertCircle, Check, Inbox, LoaderCircle, Minus, RefreshCw, X } from 'lucide-react'
 import type { AsyncState, OrderBookData, Tone } from '../types'
 
-export function MockLabel({ label = '模拟数据 · Paper' }: { label?: string }) {
-  return (
-    <span className="mock-tag" title="当前展示数据由模拟引擎提供，未连接真实交易所下单">
-      {label}
-    </span>
-  )
-}
+export { HeartbeatIndicator } from './HeartbeatIndicator'
+export type { HeartbeatIndicatorProps } from './HeartbeatIndicator'
 
 export function PageIntro({
   eyebrow,
   title,
   description,
   action,
-  dataSource = 'mock'
+  badge
 }: {
   eyebrow: string
   title: string
   description: string
   action?: ReactNode
-  dataSource?: 'mock' | 'mixed' | 'api'
+  badge?: ReactNode
 }) {
-  const sourceLabel = dataSource === 'api' ? '后端 API · Paper' : dataSource === 'mixed' ? '混合数据 · API + mock' : '模拟数据 · Paper'
   return (
     <div className="page-intro">
       <div>
         <div className="eyebrow">
           {eyebrow}
-          <MockLabel label={sourceLabel} />
+          {badge}
         </div>
         <h1>{title}</h1>
         <p>{description}</p>

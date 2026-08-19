@@ -18,6 +18,7 @@ from app.core.logging import setup_logging, bind_request_context, clear_request_
 from app.core.rate_limit import get_rate_limiter, _get_client_id
 from app.db.memory import get_store
 from app.observability.health import router as health_router
+from app.services.okx_market_stream import OkxMarketStreamService
 from app.observability.metrics import metrics
 from app.observability.tracing import setup_tracing, shutdown_tracing, get_tracer
 
@@ -60,6 +61,15 @@ async def lifespan(app: FastAPI):
     store.save()
     refresh_task = None
     strategy_scheduler_task = None
+    okx_stream_task = None
+    # OKX real-time market data line (public WS, no credentials required)
+    if getattr(settings, "okx_stream_enabled", True):
+        store.okx_market_stream = OkxMarketStreamService(store, demo=getattr(settings, "okx_stream_demo", False))
+
+        async def okx_stream_loop():
+            await store.okx_market_stream.run_forever()
+
+        okx_stream_task = asyncio.create_task(okx_stream_loop())
     if settings.market_data_mode == "public":
         async def refresh_market_loop():
             while True:
@@ -83,6 +93,10 @@ async def lifespan(app: FastAPI):
     yield
     shutdown_tracing()
     logger.info("application shutting down")
+    if okx_stream_task is not None:
+        store.okx_market_stream.stop()
+        okx_stream_task.cancel()
+        await asyncio.gather(okx_stream_task, return_exceptions=True)
     if refresh_task is not None:
         refresh_task.cancel()
         await asyncio.gather(refresh_task, return_exceptions=True)
@@ -149,7 +163,7 @@ async def add_request_id(request: Request, call_next):
         request.url.path == "/metrics" and settings.metrics_auth_enabled
     )
     if settings.auth_enabled and protected_path:
-        public_paths = {"/api/v1/auth/status", "/api/v1/auth/login"}
+        public_paths = {"/api/v1/auth/status", "/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/refresh"}
         if request.url.path not in public_paths:
             scheme, token = extract_bearer_token(request.headers.get("Authorization"))
             claims = None

@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     storage_backend: str = "pickle"
     storage_migration_source: str = ""
     postgres_dsn: str = ""
-    market_data_mode: str = "mock"
+    market_data_mode: str = "public"
     market_refresh_seconds: int = 15
     metrics_enabled: bool = True
     metrics_auth_enabled: bool = True

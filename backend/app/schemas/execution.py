@@ -41,7 +41,7 @@ class ReconciliationLogResponse(BaseModel):
     reconciliation_id: str
     account_id: str
     status: str
-    details: dict
+    details: dict | str
     summary: dict
     created_at: datetime
 

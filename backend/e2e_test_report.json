@@ -1,0 +1,1456 @@
+{
+  "title": "Enterprise AI Quant System - 4-Tier E2E Test Report",
+  "version": "0.2.0",
+  "generated_at": "2026-08-18T12:55:15.373510+00:00",
+  "summary": {
+    "total": 156,
+    "passed": 156,
+    "failed": 0,
+    "skipped": 0,
+    "pass_rate_percent": 100.0,
+    "total_duration_seconds": 1.486,
+    "status": "PASSED"
+  },
+  "tiers": {
+    "Tier 1: Feature Coverage": {
+      "total": 66,
+      "passed": 66,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 0.3499,
+      "tests": [
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f1_01_market_tickers_real_sources",
+          "name": "test_t1_f1_01_market_tickers_real_sources",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0022,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f1_02_positions_persistence_contract",
+          "name": "test_t1_f1_02_positions_persistence_contract",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0032,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f1_03_orders_lifecycle_real_states",
+          "name": "test_t1_f1_03_orders_lifecycle_real_states",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0042,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f1_04_strategies_registry_real_items",
+          "name": "test_t1_f1_04_strategies_registry_real_items",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0019,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f1_05_system_status_real_metrics",
+          "name": "test_t1_f1_05_system_status_real_metrics",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0053,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f1_06_framework_strategies_catalog",
+          "name": "test_t1_f1_06_framework_strategies_catalog",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0018,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f2_01_tickers_major_pairs",
+          "name": "test_t1_f2_01_tickers_major_pairs",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0039,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f2_02_orderbook_20_depth",
+          "name": "test_t1_f2_02_orderbook_20_depth",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0512,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f2_03_trades_recent_stream",
+          "name": "test_t1_f2_03_trades_recent_stream",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0561,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f2_04_funding_rates_contract",
+          "name": "test_t1_f2_04_funding_rates_contract",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0019,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f2_05_market_quality_health",
+          "name": "test_t1_f2_05_market_quality_health",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0016,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f2_06_symbols_metadata_coverage",
+          "name": "test_t1_f2_06_symbols_metadata_coverage",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0022,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f3_01_system_status_host_resources",
+          "name": "test_t1_f3_01_system_status_host_resources",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0051,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f3_02_liveness_and_readiness_probes",
+          "name": "test_t1_f3_02_liveness_and_readiness_probes",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0067,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f3_03_prometheus_metrics_export",
+          "name": "test_t1_f3_03_prometheus_metrics_export",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0015,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f3_04_positions_mark_to_market_update",
+          "name": "test_t1_f3_04_positions_mark_to_market_update",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0027,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f3_05_audit_events_persistence",
+          "name": "test_t1_f3_05_audit_events_persistence",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0022,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f3_06_database_connected_status",
+          "name": "test_t1_f3_06_database_connected_status",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0013,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f4_01_dashboard_api_bundle",
+          "name": "test_t1_f4_01_dashboard_api_bundle",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0147,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f4_02_market_data_api_bundle",
+          "name": "test_t1_f4_02_market_data_api_bundle",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0068,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f4_03_execution_api_bundle",
+          "name": "test_t1_f4_03_execution_api_bundle",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0093,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f4_04_research_api_bundle",
+          "name": "test_t1_f4_04_research_api_bundle",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0059,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f4_05_risk_api_bundle",
+          "name": "test_t1_f4_05_risk_api_bundle",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0056,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f4_06_agents_api_bundle",
+          "name": "test_t1_f4_06_agents_api_bundle",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0038,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f4_07_settings_api_bundle",
+          "name": "test_t1_f4_07_settings_api_bundle",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0093,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f5_01_model_providers_list",
+          "name": "test_t1_f5_01_model_providers_list",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0015,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f5_02_model_provider_upsert",
+          "name": "test_t1_f5_02_model_provider_upsert",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0023,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f5_03_model_provider_connectivity_test",
+          "name": "test_t1_f5_03_model_provider_connectivity_test",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0016,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f5_04_adapters_health_list",
+          "name": "test_t1_f5_04_adapters_health_list",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0015,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f5_05_adapter_detail_and_symbols",
+          "name": "test_t1_f5_05_adapter_detail_and_symbols",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0014,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f6_01_risk_preflight_approval",
+          "name": "test_t1_f6_01_risk_preflight_approval",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0026,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f6_02_order_intent_creation",
+          "name": "test_t1_f6_02_order_intent_creation",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0021,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f6_03_order_execution_fill",
+          "name": "test_t1_f6_03_order_execution_fill",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.005,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f6_04_positions_reflection",
+          "name": "test_t1_f6_04_positions_reflection",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0014,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f6_05_order_cancellation",
+          "name": "test_t1_f6_05_order_cancellation",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0041,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f6_06_execution_reconciliation_trigger",
+          "name": "test_t1_f6_06_execution_reconciliation_trigger",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0018,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f7_01_spa_index_html",
+          "name": "test_t1_f7_01_spa_index_html",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.001,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f7_02_css_bundle_served",
+          "name": "test_t1_f7_02_css_bundle_served",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0018,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f7_03_js_bundle_served",
+          "name": "test_t1_f7_03_js_bundle_served",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0018,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f7_04_theme_css_variables",
+          "name": "test_t1_f7_04_theme_css_variables",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0013,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f7_05_monospace_font_rules",
+          "name": "test_t1_f7_05_monospace_font_rules",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0014,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f8_01_currency_notional_formatter",
+          "name": "test_t1_f8_01_currency_notional_formatter",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0001,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f8_02_percentage_signed_formatter",
+          "name": "test_t1_f8_02_percentage_signed_formatter",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0001,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f8_03_crypto_price_adaptive_precision",
+          "name": "test_t1_f8_03_crypto_price_adaptive_precision",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0001,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f8_04_heartbeat_latency_indicator",
+          "name": "test_t1_f8_04_heartbeat_latency_indicator",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0001,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f8_05_price_flash_animations",
+          "name": "test_t1_f8_05_price_flash_animations",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0014,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f9_01_credential_save_and_encryption",
+          "name": "test_t1_f9_01_credential_save_and_encryption",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0038,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f9_02_credentials_redacted_listing",
+          "name": "test_t1_f9_02_credentials_redacted_listing",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0021,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f9_03_credential_detail_lookup",
+          "name": "test_t1_f9_03_credential_detail_lookup",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0048,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f9_04_credential_connectivity_probe",
+          "name": "test_t1_f9_04_credential_connectivity_probe",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0559,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f9_05_credential_deletion",
+          "name": "test_t1_f9_05_credential_deletion",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0077,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f10_01_model_providers_configuration",
+          "name": "test_t1_f10_01_model_providers_configuration",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0016,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f10_02_model_provider_update_and_test",
+          "name": "test_t1_f10_02_model_provider_update_and_test",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0092,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f10_03_ai_chat_completion_endpoint",
+          "name": "test_t1_f10_03_ai_chat_completion_endpoint",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0019,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f10_04_agent_task_creation",
+          "name": "test_t1_f10_04_agent_task_creation",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0021,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f10_05_agent_task_execution",
+          "name": "test_t1_f10_05_agent_task_execution",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0037,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f11_01_crypto_aes_hmac_roundtrip",
+          "name": "test_t1_f11_01_crypto_aes_hmac_roundtrip",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0002,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f11_02_auth_jwt_token_claims",
+          "name": "test_t1_f11_02_auth_jwt_token_claims",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0002,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f11_03_backtest_metrics_calculation",
+          "name": "test_t1_f11_03_backtest_metrics_calculation",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0002,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f11_04_alert_webhook_payload_formatter",
+          "name": "test_t1_f11_04_alert_webhook_payload_formatter",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0004,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f11_05_indicators_sma_ema_rsi",
+          "name": "test_t1_f11_05_indicators_sma_ema_rsi",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0003,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f12_01_nginx_health_proxy",
+          "name": "test_t1_f12_01_nginx_health_proxy",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0018,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f12_02_nginx_api_proxy_tickers",
+          "name": "test_t1_f12_02_nginx_api_proxy_tickers",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.002,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f12_03_nginx_spa_routes_fallback",
+          "name": "test_t1_f12_03_nginx_spa_routes_fallback",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0041,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f12_04_nginx_security_headers",
+          "name": "test_t1_f12_04_nginx_security_headers",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0016,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier1_features.py::test_t1_f12_05_nginx_assets_caching",
+          "name": "test_t1_f12_05_nginx_assets_caching",
+          "file": "test_tier1_features.py",
+          "tier": "Tier 1: Feature Coverage",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0015,
+          "error": null
+        }
+      ]
+    },
+    "Tier 2: Boundary & Corner Cases": {
+      "total": 66,
+      "passed": 66,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 0.0985,
+      "tests": [
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f1_01_query_nonexistent_strategy",
+          "name": "test_t2_f1_01_query_nonexistent_strategy",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0016,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f1_02_query_nonexistent_backtest",
+          "name": "test_t2_f1_02_query_nonexistent_backtest",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0017,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f1_03_query_nonexistent_portfolio_target",
+          "name": "test_t2_f1_03_query_nonexistent_portfolio_target",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0016,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f1_04_empty_order_list_filter",
+          "name": "test_t2_f1_04_empty_order_list_filter",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0015,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f1_05_empty_positions_filter",
+          "name": "test_t2_f1_05_empty_positions_filter",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0016,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f1_06_mock_header_rejection",
+          "name": "test_t2_f1_06_mock_header_rejection",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0016,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f2_01_orderbook_depth_zero",
+          "name": "test_t2_f2_01_orderbook_depth_zero",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0017,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f2_02_orderbook_depth_excessive",
+          "name": "test_t2_f2_02_orderbook_depth_excessive",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0016,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f2_03_orderbook_depth_negative",
+          "name": "test_t2_f2_03_orderbook_depth_negative",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0015,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f2_04_orderbook_invalid_symbol",
+          "name": "test_t2_f2_04_orderbook_invalid_symbol",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0015,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f2_05_trades_limit_zero",
+          "name": "test_t2_f2_05_trades_limit_zero",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0015,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f2_06_trades_limit_excessive",
+          "name": "test_t2_f2_06_trades_limit_excessive",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0027,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f3_01_mtm_negative_price",
+          "name": "test_t2_f3_01_mtm_negative_price",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0021,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f3_02_mtm_zero_price",
+          "name": "test_t2_f3_02_mtm_zero_price",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0031,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f3_03_mtm_nonexistent_symbol",
+          "name": "test_t2_f3_03_mtm_nonexistent_symbol",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0019,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f3_04_audit_events_pagination_bounds",
+          "name": "test_t2_f3_04_audit_events_pagination_bounds",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0014,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f3_05_audit_events_offset_excessive",
+          "name": "test_t2_f3_05_audit_events_offset_excessive",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0016,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f4_01_invalid_json_body_rejection",
+          "name": "test_t2_f4_01_invalid_json_body_rejection",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0014,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f4_02_missing_required_fields",
+          "name": "test_t2_f4_02_missing_required_fields",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0017,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f4_03_extra_forbidden_fields",
+          "name": "test_t2_f4_03_extra_forbidden_fields",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0017,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f4_04_research_backtest_invalid_date_range",
+          "name": "test_t2_f4_04_research_backtest_invalid_date_range",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0015,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f4_05_invalid_http_method",
+          "name": "test_t2_f4_05_invalid_http_method",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0015,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f4_06_nonexistent_api_endpoint",
+          "name": "test_t2_f4_06_nonexistent_api_endpoint",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0014,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f5_01_model_provider_not_found",
+          "name": "test_t2_f5_01_model_provider_not_found",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0013,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f5_02_adapter_not_found",
+          "name": "test_t2_f5_02_adapter_not_found",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0014,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f5_03_adapter_symbols_not_found",
+          "name": "test_t2_f5_03_adapter_symbols_not_found",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0017,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f5_04_adapter_tickers_not_found",
+          "name": "test_t2_f5_04_adapter_tickers_not_found",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0014,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f5_05_test_nonexistent_provider",
+          "name": "test_t2_f5_05_test_nonexistent_provider",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0013,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f6_01_risk_preflight_zero_quantity",
+          "name": "test_t2_f6_01_risk_preflight_zero_quantity",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.002,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f6_02_risk_preflight_negative_quantity",
+          "name": "test_t2_f6_02_risk_preflight_negative_quantity",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0016,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f6_03_risk_preflight_excessive_quantity",
+          "name": "test_t2_f6_03_risk_preflight_excessive_quantity",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0021,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f6_04_order_intent_missing_risk_decision",
+          "name": "test_t2_f6_04_order_intent_missing_risk_decision",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0017,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f6_05_order_intent_duplicate_client_id",
+          "name": "test_t2_f6_05_order_intent_duplicate_client_id",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0037,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f6_06_cancel_nonexistent_order",
+          "name": "test_t2_f6_06_cancel_nonexistent_order",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0018,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f7_01_nginx_nonexistent_asset",
+          "name": "test_t2_f7_01_nginx_nonexistent_asset",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0008,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f7_02_nginx_very_long_url",
+          "name": "test_t2_f7_02_nginx_very_long_url",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0007,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f7_03_css_syntax_error_absence",
+          "name": "test_t2_f7_03_css_syntax_error_absence",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0014,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f7_04_css_color_format_validity",
+          "name": "test_t2_f7_04_css_color_format_validity",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0014,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f7_05_nginx_head_request",
+          "name": "test_t2_f7_05_nginx_head_request",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0007,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f8_01_formatter_nan_input",
+          "name": "test_t2_f8_01_formatter_nan_input",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0001,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f8_02_formatter_extreme_large_number",
+          "name": "test_t2_f8_02_formatter_extreme_large_number",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0001,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f8_03_formatter_extreme_small_number",
+          "name": "test_t2_f8_03_formatter_extreme_small_number",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0001,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f8_04_formatter_negative_zero",
+          "name": "test_t2_f8_04_formatter_negative_zero",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0001,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f8_05_heartbeat_calculator_negative_latency",
+          "name": "test_t2_f8_05_heartbeat_calculator_negative_latency",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0001,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f9_01_credential_empty_api_key",
+          "name": "test_t2_f9_01_credential_empty_api_key",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0021,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f9_02_credential_short_api_key",
+          "name": "test_t2_f9_02_credential_short_api_key",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0016,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f9_03_credential_invalid_connection_id_chars",
+          "name": "test_t2_f9_03_credential_invalid_connection_id_chars",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0021,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f9_04_credential_lookup_nonexistent",
+          "name": "test_t2_f9_04_credential_lookup_nonexistent",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0014,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f9_05_credential_delete_nonexistent",
+          "name": "test_t2_f9_05_credential_delete_nonexistent",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0016,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f9_06_credential_crypto_tampered_ciphertext",
+          "name": "test_t2_f9_06_credential_crypto_tampered_ciphertext",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0003,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f10_01_ssrf_loopback_ip_blocked",
+          "name": "test_t2_f10_01_ssrf_loopback_ip_blocked",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0016,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f10_02_ssrf_metadata_ip_blocked",
+          "name": "test_t2_f10_02_ssrf_metadata_ip_blocked",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0048,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f10_03_ssrf_private_network_blocked",
+          "name": "test_t2_f10_03_ssrf_private_network_blocked",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0017,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f10_04_chat_empty_messages",
+          "name": "test_t2_f10_04_chat_empty_messages",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0018,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f10_05_agent_task_run_nonexistent",
+          "name": "test_t2_f10_05_agent_task_run_nonexistent",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0016,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f11_01_jwt_expired_token_rejected",
+          "name": "test_t2_f11_01_jwt_expired_token_rejected",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0002,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f11_02_jwt_tampered_signature_rejected",
+          "name": "test_t2_f11_02_jwt_tampered_signature_rejected",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0002,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f11_03_jwt_wrong_secret_rejected",
+          "name": "test_t2_f11_03_jwt_wrong_secret_rejected",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0001,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f11_04_backtest_empty_data_series",
+          "name": "test_t2_f11_04_backtest_empty_data_series",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0001,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f11_05_backtest_constant_price_zero_volatility",
+          "name": "test_t2_f11_05_backtest_constant_price_zero_volatility",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0002,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f11_06_governance_approval_already_decided",
+          "name": "test_t2_f11_06_governance_approval_already_decided",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0058,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f12_01_nginx_unsupported_method",
+          "name": "test_t2_f12_01_nginx_unsupported_method",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0008,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f12_02_nginx_spa_nested_subroutes",
+          "name": "test_t2_f12_02_nginx_spa_nested_subroutes",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0009,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f12_03_nginx_trailing_slash_handling",
+          "name": "test_t2_f12_03_nginx_trailing_slash_handling",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0015,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f12_04_nginx_static_content_type",
+          "name": "test_t2_f12_04_nginx_static_content_type",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0018,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier2_boundaries.py::test_t2_f12_05_nginx_api_cors_preflight",
+          "name": "test_t2_f12_05_nginx_api_cors_preflight",
+          "file": "test_tier2_boundaries.py",
+          "tier": "Tier 2: Boundary & Corner Cases",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0014,
+          "error": null
+        }
+      ]
+    },
+    "Tier 3: Pairwise Combinations": {
+      "total": 16,
+      "passed": 16,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 0.0685,
+      "tests": [
+        {
+          "node_id": "tests/e2e/test_tier3_pairwise.py::test_t3_pw01_market_data_and_zero_mock",
+          "name": "test_t3_pw01_market_data_and_zero_mock",
+          "file": "test_tier3_pairwise.py",
+          "tier": "Tier 3: Pairwise Combinations",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0016,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier3_pairwise.py::test_t3_pw02_positions_and_database_persistence",
+          "name": "test_t3_pw02_positions_and_database_persistence",
+          "file": "test_tier3_pairwise.py",
+          "tier": "Tier 3: Pairwise Combinations",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0029,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier3_pairwise.py::test_t3_pw03_market_quote_driving_risk_preflight_and_order_intent",
+          "name": "test_t3_pw03_market_quote_driving_risk_preflight_and_order_intent",
+          "file": "test_tier3_pairwise.py",
+          "tier": "Tier 3: Pairwise Combinations",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0054,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier3_pairwise.py::test_t3_pw04_order_fill_and_mark_to_market_valuation",
+          "name": "test_t3_pw04_order_fill_and_mark_to_market_valuation",
+          "file": "test_tier3_pairwise.py",
+          "tier": "Tier 3: Pairwise Combinations",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0094,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier3_pairwise.py::test_t3_pw05_settings_page_and_control_model_providers",
+          "name": "test_t3_pw05_settings_page_and_control_model_providers",
+          "file": "test_tier3_pairwise.py",
+          "tier": "Tier 3: Pairwise Combinations",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0042,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier3_pairwise.py::test_t3_pw06_live_credential_encryption_and_masked_retrieval",
+          "name": "test_t3_pw06_live_credential_encryption_and_masked_retrieval",
+          "file": "test_tier3_pairwise.py",
+          "tier": "Tier 3: Pairwise Combinations",
+          "outcome": "PASSED",
+          "duration_seconds": 0.005,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier3_pairwise.py::test_t3_pw07_ai_model_configuration_and_agent_task_invocation",
+          "name": "test_t3_pw07_ai_model_configuration_and_agent_task_invocation",
+          "file": "test_tier3_pairwise.py",
+          "tier": "Tier 3: Pairwise Combinations",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0047,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier3_pairwise.py::test_t3_pw08_adapter_status_and_credential_secret_ref",
+          "name": "test_t3_pw08_adapter_status_and_credential_secret_ref",
+          "file": "test_tier3_pairwise.py",
+          "tier": "Tier 3: Pairwise Combinations",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0018,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier3_pairwise.py::test_t3_pw09_order_fill_lifecycle_and_financial_formatting",
+          "name": "test_t3_pw09_order_fill_lifecycle_and_financial_formatting",
+          "file": "test_tier3_pairwise.py",
+          "tier": "Tier 3: Pairwise Combinations",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0001,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier3_pairwise.py::test_t3_pw10_market_ticker_stream_and_quality_monitoring",
+          "name": "test_t3_pw10_market_ticker_stream_and_quality_monitoring",
+          "file": "test_tier3_pairwise.py",
+          "tier": "Tier 3: Pairwise Combinations",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0026,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier3_pairwise.py::test_t3_pw11_linux_system_metrics_and_readiness_probe",
+          "name": "test_t3_pw11_linux_system_metrics_and_readiness_probe",
+          "file": "test_tier3_pairwise.py",
+          "tier": "Tier 3: Pairwise Combinations",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0038,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier3_pairwise.py::test_t3_pw12_order_intent_fill_and_daily_reconciliation",
+          "name": "test_t3_pw12_order_intent_fill_and_daily_reconciliation",
+          "file": "test_tier3_pairwise.py",
+          "tier": "Tier 3: Pairwise Combinations",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0037,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier3_pairwise.py::test_t3_pw13_nginx_reverse_proxy_and_7_spa_page_routes",
+          "name": "test_t3_pw13_nginx_reverse_proxy_and_7_spa_page_routes",
+          "file": "test_tier3_pairwise.py",
+          "tier": "Tier 3: Pairwise Combinations",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0035,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier3_pairwise.py::test_t3_pw14_nginx_static_hosting_and_bloomberg_css_theme",
+          "name": "test_t3_pw14_nginx_static_hosting_and_bloomberg_css_theme",
+          "file": "test_tier3_pairwise.py",
+          "tier": "Tier 3: Pairwise Combinations",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0013,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier3_pairwise.py::test_t3_pw15_historical_kline_import_and_backtest_execution",
+          "name": "test_t3_pw15_historical_kline_import_and_backtest_execution",
+          "file": "test_tier3_pairwise.py",
+          "tier": "Tier 3: Pairwise Combinations",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0055,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier3_pairwise.py::test_t3_pw16_kill_switch_trigger_order_block_approval_and_recovery",
+          "name": "test_t3_pw16_kill_switch_trigger_order_block_approval_and_recovery",
+          "file": "test_tier3_pairwise.py",
+          "tier": "Tier 3: Pairwise Combinations",
+          "outcome": "PASSED",
+          "duration_seconds": 0.013,
+          "error": null
+        }
+      ]
+    },
+    "Tier 4: Real-World Scenarios": {
+      "total": 8,
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 0.5354,
+      "tests": [
+        {
+          "node_id": "tests/e2e/test_tier4_scenarios.py::test_t4_s1_institutional_trader_market_to_order_execution",
+          "name": "test_t4_s1_institutional_trader_market_to_order_execution",
+          "file": "test_tier4_scenarios.py",
+          "tier": "Tier 4: Real-World Scenarios",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0174,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier4_scenarios.py::test_t4_s2_multi_exchange_credentials_and_connectivity",
+          "name": "test_t4_s2_multi_exchange_credentials_and_connectivity",
+          "file": "test_tier4_scenarios.py",
+          "tier": "Tier 4: Real-World Scenarios",
+          "outcome": "PASSED",
+          "duration_seconds": 0.068,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier4_scenarios.py::test_t4_s3_ai_model_gateway_and_strategy_chat",
+          "name": "test_t4_s3_ai_model_gateway_and_strategy_chat",
+          "file": "test_tier4_scenarios.py",
+          "tier": "Tier 4: Real-World Scenarios",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0063,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier4_scenarios.py::test_t4_s4_extreme_market_kill_switch_and_recovery_flow",
+          "name": "test_t4_s4_extreme_market_kill_switch_and_recovery_flow",
+          "file": "test_tier4_scenarios.py",
+          "tier": "Tier 4: Real-World Scenarios",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0211,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier4_scenarios.py::test_t4_s5_rbac_and_audit_trail_compliance",
+          "name": "test_t4_s5_rbac_and_audit_trail_compliance",
+          "file": "test_tier4_scenarios.py",
+          "tier": "Tier 4: Real-World Scenarios",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0105,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier4_scenarios.py::test_t4_s6_historical_market_data_and_backtest_execution",
+          "name": "test_t4_s6_historical_market_data_and_backtest_execution",
+          "file": "test_tier4_scenarios.py",
+          "tier": "Tier 4: Real-World Scenarios",
+          "outcome": "PASSED",
+          "duration_seconds": 0.393,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier4_scenarios.py::test_t4_s7_system_health_and_probes",
+          "name": "test_t4_s7_system_health_and_probes",
+          "file": "test_tier4_scenarios.py",
+          "tier": "Tier 4: Real-World Scenarios",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0109,
+          "error": null
+        },
+        {
+          "node_id": "tests/e2e/test_tier4_scenarios.py::test_t4_s8_frontend_spa_and_bloomberg_theme",
+          "name": "test_t4_s8_frontend_spa_and_bloomberg_theme",
+          "file": "test_tier4_scenarios.py",
+          "tier": "Tier 4: Real-World Scenarios",
+          "outcome": "PASSED",
+          "duration_seconds": 0.0082,
+          "error": null
+        }
+      ]
+    }
+  }
+}

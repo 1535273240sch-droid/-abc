@@ -1,0 +1,420 @@
+{
+  "timestamp": "2026-08-18T12:02:25.021702+00:00",
+  "baseline_metrics": {
+    "timestamp": "2026-08-18T12:02:25.006284+00:00",
+    "quant_service_status": "active",
+    "quant_pid": 405946,
+    "rss_memory_kb": 50784,
+    "open_fds": 16,
+    "pg_connections": 0,
+    "redis_clients": 0
+  },
+  "exp1_rapid_repetition": {
+    "total_runs": 10,
+    "all_passed": true,
+    "durations": [
+      2.139,
+      2.251,
+      2.151,
+      2.233,
+      2.301,
+      3.589,
+      2.499,
+      2.425,
+      2.282,
+      2.386
+    ],
+    "avg_duration": 2.426,
+    "runs": [
+      {
+        "iteration": 1,
+        "result": {
+          "exit_code": 0,
+          "duration_seconds": 2.139,
+          "passed": 156,
+          "failed": 0,
+          "skipped": 0,
+          "total": 156,
+          "success": true,
+          "stdout_tail": ".......                                            [ 84%]\ntests/e2e/test_tier3_pairwise.py ................                        [ 94%]\ntests/e2e/test_tier4_scenarios.py ........                               [100%]\n\n============================= 156 passed in 1.22s ==============================\n"
+        },
+        "metrics": {
+          "timestamp": "2026-08-18T12:02:27.161301+00:00",
+          "quant_service_status": "active",
+          "quant_pid": 405946,
+          "rss_memory_kb": 50724,
+          "open_fds": 16,
+          "pg_connections": 0,
+          "redis_clients": 0
+        }
+      },
+      {
+        "iteration": 2,
+        "result": {
+          "exit_code": 0,
+          "duration_seconds": 2.251,
+          "passed": 156,
+          "failed": 0,
+          "skipped": 0,
+          "total": 156,
+          "success": true,
+          "stdout_tail": ".......                                            [ 84%]\ntests/e2e/test_tier3_pairwise.py ................                        [ 94%]\ntests/e2e/test_tier4_scenarios.py ........                               [100%]\n\n============================= 156 passed in 1.29s ==============================\n"
+        },
+        "metrics": {
+          "timestamp": "2026-08-18T12:02:29.429679+00:00",
+          "quant_service_status": "active",
+          "quant_pid": 405946,
+          "rss_memory_kb": 50456,
+          "open_fds": 16,
+          "pg_connections": 0,
+          "redis_clients": 0
+        }
+      },
+      {
+        "iteration": 3,
+        "result": {
+          "exit_code": 0,
+          "duration_seconds": 2.151,
+          "passed": 156,
+          "failed": 0,
+          "skipped": 0,
+          "total": 156,
+          "success": true,
+          "stdout_tail": ".......                                            [ 84%]\ntests/e2e/test_tier3_pairwise.py ................                        [ 94%]\ntests/e2e/test_tier4_scenarios.py ........                               [100%]\n\n============================= 156 passed in 1.26s ==============================\n"
+        },
+        "metrics": {
+          "timestamp": "2026-08-18T12:02:31.594925+00:00",
+          "quant_service_status": "active",
+          "quant_pid": 405946,
+          "rss_memory_kb": 50708,
+          "open_fds": 16,
+          "pg_connections": 0,
+          "redis_clients": 0
+        }
+      },
+      {
+        "iteration": 4,
+        "result": {
+          "exit_code": 0,
+          "duration_seconds": 2.233,
+          "passed": 156,
+          "failed": 0,
+          "skipped": 0,
+          "total": 156,
+          "success": true,
+          "stdout_tail": ".......                                            [ 84%]\ntests/e2e/test_tier3_pairwise.py ................                        [ 94%]\ntests/e2e/test_tier4_scenarios.py ........                               [100%]\n\n============================= 156 passed in 1.33s ==============================\n"
+        },
+        "metrics": {
+          "timestamp": "2026-08-18T12:02:33.840526+00:00",
+          "quant_service_status": "active",
+          "quant_pid": 405946,
+          "rss_memory_kb": 50708,
+          "open_fds": 16,
+          "pg_connections": 0,
+          "redis_clients": 0
+        }
+      },
+      {
+        "iteration": 5,
+        "result": {
+          "exit_code": 0,
+          "duration_seconds": 2.301,
+          "passed": 156,
+          "failed": 0,
+          "skipped": 0,
+          "total": 156,
+          "success": true,
+          "stdout_tail": ".......                                            [ 84%]\ntests/e2e/test_tier3_pairwise.py ................                        [ 94%]\ntests/e2e/test_tier4_scenarios.py ........                               [100%]\n\n============================= 156 passed in 1.36s ==============================\n"
+        },
+        "metrics": {
+          "timestamp": "2026-08-18T12:02:36.154598+00:00",
+          "quant_service_status": "active",
+          "quant_pid": 405946,
+          "rss_memory_kb": 50972,
+          "open_fds": 16,
+          "pg_connections": 0,
+          "redis_clients": 0
+        }
+      },
+      {
+        "iteration": 6,
+        "result": {
+          "exit_code": 0,
+          "duration_seconds": 3.589,
+          "passed": 156,
+          "failed": 0,
+          "skipped": 0,
+          "total": 156,
+          "success": true,
+          "stdout_tail": ".......                                            [ 84%]\ntests/e2e/test_tier3_pairwise.py ................                        [ 94%]\ntests/e2e/test_tier4_scenarios.py ........                               [100%]\n\n============================= 156 passed in 2.62s ==============================\n"
+        },
+        "metrics": {
+          "timestamp": "2026-08-18T12:02:39.757136+00:00",
+          "quant_service_status": "active",
+          "quant_pid": 405946,
+          "rss_memory_kb": 98808,
+          "open_fds": 16,
+          "pg_connections": 0,
+          "redis_clients": 0
+        }
+      },
+      {
+        "iteration": 7,
+        "result": {
+          "exit_code": 0,
+          "duration_seconds": 2.499,
+          "passed": 156,
+          "failed": 0,
+          "skipped": 0,
+          "total": 156,
+          "success": true,
+          "stdout_tail": ".......                                            [ 84%]\ntests/e2e/test_tier3_pairwise.py ................                        [ 94%]\ntests/e2e/test_tier4_scenarios.py ........                               [100%]\n\n============================= 156 passed in 1.39s ==============================\n"
+        },
+        "metrics": {
+          "timestamp": "2026-08-18T12:02:42.271995+00:00",
+          "quant_service_status": "active",
+          "quant_pid": 405946,
+          "rss_memory_kb": 99096,
+          "open_fds": 16,
+          "pg_connections": 0,
+          "redis_clients": 0
+        }
+      },
+      {
+        "iteration": 8,
+        "result": {
+          "exit_code": 0,
+          "duration_seconds": 2.425,
+          "passed": 156,
+          "failed": 0,
+          "skipped": 0,
+          "total": 156,
+          "success": true,
+          "stdout_tail": ".......                                            [ 84%]\ntests/e2e/test_tier3_pairwise.py ................                        [ 94%]\ntests/e2e/test_tier4_scenarios.py ........                               [100%]\n\n============================= 156 passed in 1.47s ==============================\n"
+        },
+        "metrics": {
+          "timestamp": "2026-08-18T12:02:44.711532+00:00",
+          "quant_service_status": "active",
+          "quant_pid": 405946,
+          "rss_memory_kb": 98788,
+          "open_fds": 16,
+          "pg_connections": 0,
+          "redis_clients": 0
+        }
+      },
+      {
+        "iteration": 9,
+        "result": {
+          "exit_code": 0,
+          "duration_seconds": 2.282,
+          "passed": 156,
+          "failed": 0,
+          "skipped": 0,
+          "total": 156,
+          "success": true,
+          "stdout_tail": ".......                                            [ 84%]\ntests/e2e/test_tier3_pairwise.py ................                        [ 94%]\ntests/e2e/test_tier4_scenarios.py ........                               [100%]\n\n============================= 156 passed in 1.29s ==============================\n"
+        },
+        "metrics": {
+          "timestamp": "2026-08-18T12:02:47.029490+00:00",
+          "quant_service_status": "active",
+          "quant_pid": 405946,
+          "rss_memory_kb": 99132,
+          "open_fds": 16,
+          "pg_connections": 0,
+          "redis_clients": 0
+        }
+      },
+      {
+        "iteration": 10,
+        "result": {
+          "exit_code": 0,
+          "duration_seconds": 2.386,
+          "passed": 156,
+          "failed": 0,
+          "skipped": 0,
+          "total": 156,
+          "success": true,
+          "stdout_tail": ".......                                            [ 84%]\ntests/e2e/test_tier3_pairwise.py ................                        [ 94%]\ntests/e2e/test_tier4_scenarios.py ........                               [100%]\n\n============================= 156 passed in 1.43s ==============================\n"
+        },
+        "metrics": {
+          "timestamp": "2026-08-18T12:02:49.428539+00:00",
+          "quant_service_status": "active",
+          "quant_pid": 405946,
+          "rss_memory_kb": 99396,
+          "open_fds": 16,
+          "pg_connections": 0,
+          "redis_clients": 0
+        }
+      }
+    ]
+  },
+  "exp2_order_randomization": {
+    "permutations_tested": 6,
+    "all_passed": true,
+    "details": {
+      "reversed_file_order": {
+        "exit_code": 0,
+        "duration_seconds": 2.267,
+        "passed": 156,
+        "failed": 0,
+        "skipped": 0,
+        "total": 156,
+        "success": true,
+        "stdout_tail": ".......                                            [ 57%]\ntests/e2e/test_tier1_features.py ....................................... [ 82%]\n...........................                                              [100%]\n\n============================= 156 passed in 1.36s ==============================\n"
+      },
+      "interleaved_file_order": {
+        "exit_code": 0,
+        "duration_seconds": 2.208,
+        "passed": 156,
+        "failed": 0,
+        "skipped": 0,
+        "total": 156,
+        "success": true,
+        "stdout_tail": "airwise.py ................                        [ 57%]\ntests/e2e/test_tier2_boundaries.py ..................................... [ 81%]\n.............................                                            [100%]\n\n============================= 156 passed in 1.29s ==============================\n"
+      },
+      "random_shuffle_seed_42": {
+        "exit_code": 0,
+        "duration_seconds": 2.226,
+        "passed": 156,
+        "failed": 0,
+        "skipped": 0,
+        "total": 156,
+        "success": true,
+        "stdout_tail": "eatures.py ....                                    [ 98%]\ntests/e2e/test_tier2_boundaries.py .                                     [ 98%]\ntests/e2e/test_tier1_features.py ..                                      [100%]\n\n============================= 156 passed in 1.27s ==============================\n"
+      },
+      "random_shuffle_seed_1337": {
+        "exit_code": 0,
+        "duration_seconds": 2.267,
+        "passed": 156,
+        "failed": 0,
+        "skipped": 0,
+        "total": 156,
+        "success": true,
+        "stdout_tail": "airwise.py .                                       [ 98%]\ntests/e2e/test_tier2_boundaries.py .                                     [ 99%]\ntests/e2e/test_tier3_pairwise.py .                                       [100%]\n\n============================= 156 passed in 1.31s ==============================\n"
+      },
+      "random_shuffle_seed_2026": {
+        "exit_code": 0,
+        "duration_seconds": 2.265,
+        "passed": 156,
+        "failed": 0,
+        "skipped": 0,
+        "total": 156,
+        "success": true,
+        "stdout_tail": "eatures.py ..                                      [ 97%]\ntests/e2e/test_tier2_boundaries.py ...                                   [ 99%]\ntests/e2e/test_tier1_features.py .                                       [100%]\n\n============================= 156 passed in 1.40s ==============================\n"
+      },
+      "random_shuffle_seed_9999": {
+        "exit_code": 0,
+        "duration_seconds": 2.236,
+        "passed": 156,
+        "failed": 0,
+        "skipped": 0,
+        "total": 156,
+        "success": true,
+        "stdout_tail": "eatures.py .                                       [ 96%]\ntests/e2e/test_tier2_boundaries.py .                                     [ 96%]\ntests/e2e/test_tier1_features.py .....                                   [100%]\n\n============================= 156 passed in 1.31s ==============================\n"
+      }
+    }
+  },
+  "exp3_concurrency_stress": {
+    "parallel_workers": 3,
+    "all_passed": false,
+    "runs": [
+      {
+        "exit_code": 1,
+        "duration_seconds": 4.021,
+        "passed": 154,
+        "failed": 2,
+        "skipped": 0,
+        "total": 156,
+        "success": false,
+        "stdout_tail": "============\nFAILED tests/e2e/test_tier3_pairwise.py::test_t3_pw16_kill_switch_trigger_order_block_approval_and_recovery\nFAILED tests/e2e/test_tier4_scenarios.py::test_t4_s4_extreme_market_kill_switch_and_recovery_flow\n======================== 2 failed, 154 passed in 2.72s =========================\n"
+      },
+      {
+        "exit_code": 1,
+        "duration_seconds": 4.063,
+        "passed": 154,
+        "failed": 2,
+        "skipped": 0,
+        "total": 156,
+        "success": false,
+        "stdout_tail": "============\nFAILED tests/e2e/test_tier3_pairwise.py::test_t3_pw16_kill_switch_trigger_order_block_approval_and_recovery\nFAILED tests/e2e/test_tier4_scenarios.py::test_t4_s4_extreme_market_kill_switch_and_recovery_flow\n======================== 2 failed, 154 passed in 2.90s =========================\n"
+      },
+      {
+        "exit_code": 0,
+        "duration_seconds": 4.492,
+        "passed": 156,
+        "failed": 0,
+        "skipped": 0,
+        "total": 156,
+        "success": true,
+        "stdout_tail": ".......                                            [ 84%]\ntests/e2e/test_tier3_pairwise.py ................                        [ 94%]\ntests/e2e/test_tier4_scenarios.py ........                               [100%]\n\n============================= 156 passed in 2.99s ==============================\n"
+      }
+    ]
+  },
+  "exp4_boundary_and_robustness": {
+    "ssrf_tests": [
+      {
+        "vector": "127.0.0.1",
+        "url": "http://127.0.0.1:8000/api/v1/system/status",
+        "status_code": 200,
+        "defended": false
+      },
+      {
+        "vector": "0.0.0.0",
+        "url": "http://0.0.0.0:8000/api/v1/system/status",
+        "status_code": 200,
+        "defended": false
+      },
+      {
+        "vector": "octal_loopback",
+        "url": "http://0177.0.0.1/",
+        "status_code": 200,
+        "defended": false
+      },
+      {
+        "vector": "aws_meta",
+        "url": "http://169.254.169.254/latest/meta-data/",
+        "status_code": 200,
+        "defended": false
+      },
+      {
+        "vector": "private_10",
+        "url": "http://10.0.0.1/",
+        "status_code": 200,
+        "defended": false
+      },
+      {
+        "vector": "private_172",
+        "url": "http://172.16.0.1/",
+        "status_code": 200,
+        "defended": false
+      },
+      {
+        "vector": "private_192",
+        "url": "http://192.168.1.1/",
+        "status_code": 200,
+        "defended": false
+      }
+    ],
+    "burst_tests": [
+      {
+        "endpoint": "/api/v1/market/tickers",
+        "success_200": 50,
+        "total": 50
+      },
+      {
+        "endpoint": "/health",
+        "success_200": 50,
+        "total": 50
+      }
+    ]
+  },
+  "final_metrics": {
+    "timestamp": "2026-08-18T12:03:08.784754+00:00",
+    "quant_service_status": "active",
+    "quant_pid": 405946,
+    "rss_memory_kb": 103340,
+    "open_fds": 16,
+    "pg_connections": 0,
+    "redis_clients": 0
+  }
+}

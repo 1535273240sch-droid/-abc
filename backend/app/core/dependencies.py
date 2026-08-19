@@ -137,3 +137,18 @@ def get_historical_data_service(request: Request) -> HistoricalDataService:
 
 def require_idempotency_key(x_idempotency_key: str | None = Header(None)) -> str | None:
     return x_idempotency_key
+
+
+def get_alpha_mining_service(request: Request):
+    store = get_store(request)
+    return getattr(store, "alpha_mining_service", None)
+
+
+def get_portfolio_optimizer_service(request: Request):
+    store = get_store(request)
+    return getattr(store, "portfolio_optimizer_service", None)
+
+
+def get_strategy_evolution_service(request: Request):
+    store = get_store(request)
+    return getattr(store, "strategy_evolution_service", None)

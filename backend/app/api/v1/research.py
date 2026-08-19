@@ -252,3 +252,131 @@ async def list_historical_series(service: HistoricalDataService = Depends(get_hi
 @router.delete("/historical/series")
 async def delete_historical_series(symbol: str, period: str, service: HistoricalDataService = Depends(get_historical_data_service)):
     return service.delete_series(symbol=symbol, period=period)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Extended Alpha Mining & AI Quant Research Endpoints
+# ─────────────────────────────────────────────────────────────────────────────
+
+from app.core.dependencies import (
+    get_alpha_mining_service,
+    get_portfolio_optimizer_service,
+    get_strategy_evolution_service,
+)
+
+
+@router.get("/alpha/factors", response_model=list[dict])
+async def list_alpha_factors(
+    symbol: str | None = Query(None),
+    min_rank_ic: float = Query(0.0),
+    service=Depends(get_alpha_mining_service),
+):
+    if not service:
+        return []
+    return service.list_factors(symbol=symbol, min_rank_ic=min_rank_ic)
+
+
+@router.post("/alpha/mine", response_model=list[dict])
+async def mine_alpha_factors(
+    body: dict,
+    request: Request,
+    service=Depends(get_alpha_mining_service),
+    audit_service: AuditService = Depends(get_audit_service),
+):
+    symbol = body.get("symbol", "BTCUSDT")
+    period = body.get("period", "1h")
+    generations = int(body.get("generations", 4))
+    population_size = int(body.get("population_size", 30))
+    bars_count = int(body.get("bars_count", 300))
+
+    factors = service.mine_factors(
+        symbol=symbol,
+        period=period,
+        generations=generations,
+        population_size=population_size,
+        bars_count=bars_count,
+    )
+    audit_service.record("alpha.mined", "system", "alpha_mining", symbol, {"factors_found": len(factors)}, request.client.host if request.client else None, getattr(request.state, "request_id", None))
+    return factors
+
+
+@router.post("/alpha/llm-generate", response_model=dict)
+async def generate_llm_alpha_factor(
+    body: dict,
+    request: Request,
+    service=Depends(get_alpha_mining_service),
+    audit_service: AuditService = Depends(get_audit_service),
+):
+    hypothesis = body.get("hypothesis", "基于近期成交量异动与突破动量的多空预测")
+    symbol = body.get("symbol", "BTCUSDT")
+    result = service.generate_llm_factor(hypothesis=hypothesis, symbol=symbol)
+    audit_service.record("alpha.llm_generated", "system", "alpha_mining", symbol, {"expression": result.get("expression")}, request.client.host if request.client else None, getattr(request.state, "request_id", None))
+    return result
+
+
+@router.post("/portfolio/optimize", response_model=dict)
+async def optimize_portfolio_weights(
+    body: dict,
+    request: Request,
+    service=Depends(get_portfolio_optimizer_service),
+    audit_service: AuditService = Depends(get_audit_service),
+):
+    symbols = body.get("symbols", ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT"])
+    method = body.get("method", "risk_parity")
+    period = body.get("period", "1d")
+    lookback = int(body.get("lookback_bars", 90))
+
+    result = service.optimize_portfolio(symbols=symbols, method=method, period=period, lookback_bars=lookback)
+    audit_service.record("portfolio.optimized", "system", "portfolio_optimizer", method, {"symbols": symbols, "sharpe": result.get("portfolio_sharpe_ratio")}, request.client.host if request.client else None, getattr(request.state, "request_id", None))
+    return result
+
+
+@router.post("/portfolio/rebalance-plan", response_model=list[dict])
+async def get_portfolio_rebalance_plan(
+    body: dict,
+    service=Depends(get_portfolio_optimizer_service),
+):
+    allocations = body.get("allocations", [])
+    total_val = float(body.get("total_portfolio_value", 100000.0))
+    account_id = body.get("account_id", "paper-main")
+    return service.generate_rebalance_plan(account_id=account_id, optimized_allocations=allocations, total_portfolio_value=total_val)
+
+
+@router.get("/strategy/evolutions", response_model=list[dict])
+async def list_strategy_evolutions(
+    strategy_id: str | None = Query(None),
+    service=Depends(get_strategy_evolution_service),
+):
+    if not service:
+        return []
+    return service.list_evolutions(strategy_id=strategy_id)
+
+
+@router.post("/strategy/evolve", response_model=dict)
+async def evolve_strategy(
+    body: dict,
+    request: Request,
+    service=Depends(get_strategy_evolution_service),
+    audit_service: AuditService = Depends(get_audit_service),
+):
+    strategy_id = body.get("strategy_id", "strat-trend-001")
+    backtest_id = body.get("recent_backtest_id")
+    operator = body.get("operator", "ai-agent-stepfun")
+
+    result = service.diagnose_and_evolve(strategy_id=strategy_id, recent_backtest_id=backtest_id, operator=operator)
+    audit_service.record("strategy.evolved", operator, "strategy_evolution", strategy_id, {"candidate_version": result.get("candidate_version")}, request.client.host if request.client else None, getattr(request.state, "request_id", None))
+    return result
+
+
+@router.post("/strategy/apply-evolution", response_model=dict)
+async def apply_strategy_evolution(
+    body: dict,
+    request: Request,
+    service=Depends(get_strategy_evolution_service),
+    audit_service: AuditService = Depends(get_audit_service),
+):
+    evolution_id = body.get("evolution_id")
+    operator = body.get("operator", "admin")
+    result = service.apply_evolution(evolution_id=evolution_id, operator=operator)
+    audit_service.record("strategy.evolution_applied", operator, "strategy_evolution", evolution_id, {"status": result.get("status")}, request.client.host if request.client else None, getattr(request.state, "request_id", None))
+    return result

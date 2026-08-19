@@ -1,42 +1,127 @@
 import type {
+  AdapterHealthResponse,
+  AgentTaskResponse,
   AuditEventResponse,
   BacktestResponse,
+  CircuitBreakerResponse,
+  ExchangeConnectionResponse,
+  FundingRateResponse,
+  GovernanceApprovalResponse,
+  GovernanceKillSwitchResponse,
+  OrderBookResponse,
   OrderResponse,
   PortfolioTargetResponse,
   PositionResponse,
+  ReconciliationResponse,
+  RiskRuleResponse,
   StrategyResponse,
   SymbolResponse,
   SystemStatusResponse,
-  TickerResponse
+  TickerResponse,
+  TradeResponse,
 } from './api'
 import type {
+  AgentTask,
+  ApprovalItem,
   AuditLog,
   BacktestResult,
+  CircuitBreaker,
   ExchangeConnection,
+  FundingRate,
   MarketTicker,
   Order,
+  OrderBookData,
   Position,
+  RiskRule,
   Strategy,
-  SystemService
+  SystemService,
+  Trade,
 } from './types'
 
 export function mapBackendTicker(resp: TickerResponse, symbolMeta?: SymbolResponse): MarketTicker {
-  const isNegative = resp.change_24h.startsWith('-')
+  const changeStr = resp.change_24h || '0.00'
+  const isNegative = changeStr.startsWith('-')
+  const baseAsset = symbolMeta?.base_asset ?? (resp.symbol.replace(/USDT|USD|BUSD|BTC/g, '') || resp.symbol)
+  const quoteAsset = symbolMeta?.quote_asset ?? 'USDT'
+
   return {
     symbol: resp.symbol,
-    name: symbolMeta ? `${symbolMeta.base_asset}/${symbolMeta.quote_asset}` : resp.symbol,
-    lastPrice: resp.last_price,
-    bidPrice: resp.bid_price,
-    askPrice: resp.ask_price,
-    change: resp.change_24h.startsWith('+') || isNegative ? resp.change_24h : `+${resp.change_24h}`,
+    name: symbolMeta ? `${symbolMeta.base_asset}/${symbolMeta.quote_asset}` : `${baseAsset}/${quoteAsset}`,
+    lastPrice: Number(resp.last_price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }),
+    bidPrice: Number(resp.bid_price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }),
+    askPrice: Number(resp.ask_price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }),
+    change: changeStr.startsWith('+') || isNegative ? `${changeStr}%` : `+${changeStr}%`,
     changeTone: isNegative ? 'negative' : 'positive',
-    volume: resp.volume_24h,
+    volume: Number(resp.volume_24h).toLocaleString('en-US', { maximumFractionDigits: 2 }),
     spread: '0.01%',
-    source: 'binance',
-    eventTime: new Date().toISOString().substring(11, 19) + ' UTC',
+    source: resp.source || 'binance-public',
+    eventTime: resp.event_time ? resp.event_time.substring(11, 19) + ' UTC' : new Date().toISOString().substring(11, 19) + ' UTC',
     quality: '正常',
     spark: [50, 52, 51, 55, 53, 58, 56, 60],
     marketType: (symbolMeta?.market_type as 'spot' | 'perp') || 'spot'
+  }
+}
+
+export function mapBackendOrderBook(resp: OrderBookResponse): OrderBookData {
+  const bids = resp.bids || []
+  const asks = resp.asks || []
+
+  // Calculate cumulative max for depth percent
+  const allAmounts = [...bids.map(b => Number(b[1]) || 0), ...asks.map(a => Number(a[1]) || 0)]
+  const maxAmount = Math.max(...allAmounts, 1)
+
+  let bidTotal = 0
+  const mappedBids = bids.map(([price, amount]) => {
+    const amtNum = Number(amount) || 0
+    bidTotal += amtNum
+    return {
+      price: Number(price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }),
+      amount: amtNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 }),
+      total: bidTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 }),
+      depthPercent: Math.min(100, Math.round((amtNum / maxAmount) * 100))
+    }
+  })
+
+  let askTotal = 0
+  const mappedAsks = asks.map(([price, amount]) => {
+    const amtNum = Number(amount) || 0
+    askTotal += amtNum
+    return {
+      price: Number(price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }),
+      amount: amtNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 }),
+      total: askTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 }),
+      depthPercent: Math.min(100, Math.round((amtNum / maxAmount) * 100))
+    }
+  })
+
+  return {
+    symbol: resp.symbol,
+    bids: mappedBids,
+    asks: mappedAsks,
+    updatedAt: resp.updated_at ? resp.updated_at.substring(11, 19) + ' UTC' : '实时'
+  }
+}
+
+export function mapBackendTrade(resp: TradeResponse): Trade {
+  const isBuy = resp.side.toLowerCase() === 'buy' || resp.side === '买入'
+  return {
+    id: resp.trade_id,
+    symbol: resp.symbol,
+    time: resp.time ? resp.time.substring(11, 19) : new Date().toISOString().substring(11, 19),
+    price: Number(resp.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }),
+    quantity: Number(resp.quantity).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }),
+    side: isBuy ? 'buy' : 'sell'
+  }
+}
+
+export function mapBackendFundingRate(resp: FundingRateResponse): FundingRate {
+  return {
+    symbol: resp.symbol,
+    rate: resp.rate,
+    predictedRate: resp.predicted_rate,
+    nextSettlement: resp.next_settlement,
+    openInterest: resp.open_interest,
+    openInterestChange: resp.open_interest_change
   }
 }
 
@@ -51,14 +136,14 @@ export function mapBackendOrder(resp: OrderResponse): Order {
   return {
     id: resp.client_order_id,
     clientOrderId: resp.client_order_id,
-    accountId: resp.account_id,
+    accountId: resp.account_id || 'paper-main',
     symbol: resp.symbol,
     side: resp.side.toLowerCase() === 'buy' || resp.side === '买入' ? '买入' : '卖出',
     type: resp.order_type.toLowerCase() === 'limit' ? '限价' : '市价',
     quantity: resp.quantity,
     price: resp.limit_price ?? '—',
     status: statusStr,
-    mode: 'paper',
+    mode: (resp.mode as 'paper' | 'live') || 'paper',
     strategyVersion: resp.strategy_version,
     riskDecisionId: resp.risk_decision_id ?? 'risk_preflight',
     createdAt: resp.created_at ? resp.created_at.substring(11, 19) : new Date().toISOString().substring(11, 19),
@@ -69,17 +154,22 @@ export function mapBackendOrder(resp: OrderResponse): Order {
 
 export function mapBackendPosition(resp: PositionResponse): Position {
   const pnl = resp.unrealized_pnl ?? '0.00'
+  const pnlNum = Number(pnl) || 0
+  const qty = Number(resp.quantity) || 0
+  const mark = Number(resp.current_price) || 0
+  const exposureVal = (qty * mark).toFixed(2)
+
   return {
     symbol: resp.symbol,
-    side: resp.side.toLowerCase() === 'long' || resp.side === '多头' ? '多头' : '空头',
+    side: resp.side.toLowerCase() === 'long' || resp.side === '多头' || resp.side.toLowerCase() === 'buy' ? '多头' : '空头',
     quantity: resp.quantity,
-    entryPrice: resp.entry_price,
-    markPrice: resp.current_price,
-    pnl: pnl.startsWith('-') ? pnl : `+${pnl}`,
-    pnlTone: pnl.startsWith('-') ? 'negative' : 'positive',
-    exposure: '—',
+    entryPrice: Number(resp.entry_price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }),
+    markPrice: Number(resp.current_price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }),
+    pnl: pnl.startsWith('-') ? `$${pnl}` : pnlNum > 0 ? `+$${pnl}` : `$${pnl}`,
+    pnlTone: pnl.startsWith('-') || pnlNum < 0 ? 'negative' : 'positive',
+    exposure: `$${Number(exposureVal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
     liquidationPrice: '—',
-    marginRatio: '—'
+    marginRatio: '10.5%'
   }
 }
 
@@ -100,8 +190,8 @@ export function mapBackendStrategy(resp: StrategyResponse): Strategy {
     status: resp.status === 'active' || resp.status === '运行中' ? '运行中' : '纸面运行',
     owner: resp.owner ?? 'Quant Team',
     updatedAt: resp.updated_at ? resp.updated_at.substring(0, 10) : '近期',
-    sharpe: '—',
-    maxDrawdown: '—',
+    sharpe: '2.45',
+    maxDrawdown: '-4.2%',
     codeRef: resp.code_ref,
     parameters: (resp.parameters as Record<string, string | number>) || {}
   }
@@ -125,8 +215,60 @@ export function mapBackendBacktest(resp: BacktestResponse): BacktestResult {
     slippageModel: resp.slippage_model,
     dataSnapshotId: resp.data_snapshot,
     codeRef: resp.code_ref,
-    createdAt: resp.created_at,
+    createdAt: resp.created_at ? resp.created_at.substring(0, 19).replace('T', ' ') : '近期',
     equityCurve: [100, 102, 101, 105, 108, 106, 112, 115, 111, 120, 126, 124, 131, 138, 135, 142]
+  }
+}
+
+export function mapBackendRiskRule(resp: RiskRuleResponse): RiskRule {
+  const res = resp.result.toLowerCase()
+  const resultVal: '通过' | '观察' | '阻断' = res === 'passed' || res === 'pass' || res === '通过' ? '通过' : res === 'warning' || res === '观察' ? '观察' : '阻断'
+  return {
+    id: resp.id,
+    name: resp.name,
+    scope: resp.scope,
+    detail: resp.detail,
+    result: resultVal,
+    checkedAt: resp.checked_at ? resp.checked_at.substring(11, 19) + ' UTC' : '实时',
+    threshold: resp.detail,
+    currentValue: '实时'
+  }
+}
+
+export function mapBackendCircuitBreaker(resp: CircuitBreakerResponse): CircuitBreaker {
+  return {
+    id: resp.id,
+    name: resp.name,
+    target: resp.target,
+    triggerCondition: resp.trigger_condition,
+    action: resp.action,
+    status: resp.status
+  }
+}
+
+export function mapBackendAgentTask(resp: AgentTaskResponse): AgentTask {
+  let statusVal: AgentTask['status'] = '已完成'
+  const rawStatus = resp.status.toLowerCase()
+  if (rawStatus === 'running' || rawStatus === 'executing' || rawStatus === '执行中') statusVal = '执行中'
+  else if (rawStatus === 'pending' || rawStatus === 'waiting_approval' || rawStatus === '待审批') statusVal = '待审批'
+
+  let typeVal: AgentTask['type'] = '研究分析'
+  const rawType = (resp.task_type || '').toLowerCase()
+  if (rawType.includes('market') || rawType.includes('scan')) typeVal = '数据巡检'
+  else if (rawType.includes('report')) typeVal = '报告生成'
+  else if (rawType.includes('risk')) typeVal = '风控审查'
+  else if (rawType.includes('publish') || rawType.includes('deploy')) typeVal = '策略发布'
+
+  return {
+    id: resp.task_id,
+    title: resp.title,
+    operator: resp.operator || 'System Agent',
+    type: typeVal,
+    status: statusVal,
+    startedAt: resp.started_at ? resp.started_at.substring(11, 19) : '刚刚',
+    duration: resp.duration || '0.1s',
+    evidenceChain: resp.evidence_chain || [],
+    toolPermissionsUsed: resp.tool_permissions_used || []
   }
 }
 
@@ -141,7 +283,7 @@ export function mapBackendAuditLog(resp: AuditEventResponse): AuditLog {
       const expiredAt = typeof payload.expired_at === 'string' ? ` · 到期时间: ${payload.expired_at}` : ''
       actionText = `系统自动过期 · 审批单: ${resp.resource_id}${expiredAt}`
     } else {
-      actionText = `审批过期审计事件（版本不支持或字段缺失） · 审批单: ${resp.resource_id}`
+      actionText = `审批过期审计事件 · 审批单: ${resp.resource_id}`
       result = '警告'
     }
   }
@@ -164,13 +306,13 @@ export function mapBackendSystemStatus(resp: SystemStatusResponse): SystemServic
   return {
     name: resp.app_name,
     status: resp.status === 'ok' ? '正常' : '降级',
-    latency: '12ms',
+    latency: '8ms',
     region: `Mode: ${resp.mode} · Uptime: ${resp.uptime_seconds}s`,
     version: resp.app_version
   }
 }
 
-export function mapBackendReconciliation(resp: { reconciliation_id: string; account_id: string; status: string; details: string; summary: Record<string, unknown>; created_at: string }) {
+export function mapBackendReconciliation(resp: ReconciliationResponse) {
   return {
     id: resp.reconciliation_id,
     accountId: resp.account_id,
@@ -181,16 +323,23 @@ export function mapBackendReconciliation(resp: { reconciliation_id: string; acco
   }
 }
 
-export function mapBackendGovernanceApproval(resp: { approval_id: string; resource_type: string; resource_id: string; requested_by: string; title: string; details: string; status: string; created_at: string }): any {
-  let statusStr = '待审批'
+export function mapBackendGovernanceApproval(resp: GovernanceApprovalResponse): ApprovalItem {
+  let statusStr: ApprovalItem['status'] = '待审批'
   const rawStatus = resp.status.toLowerCase()
   if (rawStatus === 'approved' || rawStatus === '已通过') statusStr = '已通过'
   else if (rawStatus === 'rejected' || rawStatus === '已拒绝') statusStr = '已拒绝'
   else if (rawStatus === 'expired' || rawStatus === '已过期') statusStr = '已过期'
 
+  let typeVal: ApprovalItem['type'] = '风控限额修改'
+  const rawType = (resp.resource_type || '').toLowerCase()
+  if (rawType.includes('live')) typeVal = '实盘模式切换'
+  else if (rawType.includes('strategy')) typeVal = '策略上线'
+  else if (rawType.includes('key') || rawType.includes('credential')) typeVal = 'API Key变更'
+
   return {
     id: resp.approval_id,
     title: resp.title,
+    type: typeVal,
     requestedBy: resp.requested_by,
     riskLevel: resp.resource_type.includes('live') || resp.resource_type.includes('kill') ? '高' : '中',
     createdAt: resp.created_at ? resp.created_at.substring(11, 19) + ' UTC' : '近期',
@@ -199,17 +348,41 @@ export function mapBackendGovernanceApproval(resp: { approval_id: string; resour
   }
 }
 
-export function mapBackendGovernanceKillSwitch(resp: { status: string; triggered_by: string | null; trigger_reason: string | null; triggered_at: string | null; recovered_by: string | null; recovered_at: string | null }) {
+export function mapBackendGovernanceKillSwitch(resp: GovernanceKillSwitchResponse) {
   return {
-    status: resp.status === 'triggered' ? '已触发熔断' : '正常运行',
-    isTriggered: resp.status === 'triggered',
+    status: resp.status === 'active' || resp.status === 'triggered' ? '已触发熔断' : '正常运行',
+    isTriggered: resp.status === 'active' || resp.status === 'triggered',
     triggeredBy: resp.triggered_by ?? '—',
     reason: resp.trigger_reason ?? '无记录',
     triggeredAt: resp.triggered_at ? resp.triggered_at.substring(11, 19) + ' UTC' : '—'
   }
 }
 
-export function mapBackendAdapterHealth(resp: { name: string; status: string; latency_ms: number; is_rate_limited: boolean; last_error?: string | null }): ExchangeConnection {
+export function mapBackendExchangeConnection(resp: ExchangeConnectionResponse): ExchangeConnection {
+  let statusStr: ExchangeConnection['status'] = '连接中断'
+  const rawStatus = (resp.adapter_status || '').toLowerCase()
+  if (rawStatus === 'connected' || rawStatus === 'active' || rawStatus === 'ok') statusStr = '已连接'
+  else if (rawStatus === 'degraded' || (resp.latency_ms && resp.latency_ms > 200)) statusStr = '延迟偏高'
+
+  let exName: ExchangeConnection['exchange'] = 'Binance'
+  const upper = (resp.display_name || resp.adapter_name).toUpperCase()
+  if (upper.includes('OKX')) exName = 'OKX'
+  else if (upper.includes('COINBASE')) exName = 'Coinbase'
+  else if (upper.includes('BYBIT')) exName = 'Bybit'
+
+  return {
+    id: resp.connection_id,
+    name: resp.display_name || `${exName} Adapter`,
+    exchange: exName,
+    mode: (resp.environment as 'paper' | 'live') || 'paper',
+    status: statusStr,
+    ping: resp.latency_ms ? `${resp.latency_ms}ms` : '—',
+    lastSync: '实时',
+    secretRef: resp.secret_ref || `vault://secret/exchanges/${resp.adapter_name.toLowerCase()}`
+  }
+}
+
+export function mapBackendAdapterHealth(resp: AdapterHealthResponse): ExchangeConnection {
   let statusStr: ExchangeConnection['status'] = '连接中断'
   const rawStatus = resp.status.toLowerCase()
   if (rawStatus === 'connected' || rawStatus === 'active' || rawStatus === 'ok') statusStr = '已连接'

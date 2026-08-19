@@ -42,7 +42,14 @@ class ExchangeConnectionUpsertRequest(BaseModel):
     enabled: bool = True
 
 
-class ExchangeConnectionResponse(ExchangeConnectionUpsertRequest):
+class ExchangeConnectionResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    connection_id: str
+    adapter_name: str
+    display_name: str
+    environment: str = "paper"
+    secret_ref: str | None = None
+    enabled: bool = True
     adapter_status: str
     credential_status: str
     latency_ms: int | None = None

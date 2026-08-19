@@ -1,18 +1,27 @@
 from typing import Any
 
 from app.core.errors import QuantError
+from app.core.logging import get_logger
 from app.events.bus import DomainEvent, event_bus, event_type, new_event_id, now_utc
 from app.models.domain import KillSwitchState, utcnow
 from app.models.enums import ApprovalResourceType, ApprovalStatus, KillSwitchStatus, TradeMode
+from app.services.alert_notification_service import AlertLevel
+
+logger = get_logger(__name__)
 
 
 class KillSwitchService:
     def __init__(self, store: Any):
         self._store = store
-        # 熔断状态挂载到 store 持久化字段上（重启后自动恢复），
-        # 通过 _state 属性动态读取，避免缓存旧引用
-        if store.kill_switch_state is None:
-            store.kill_switch_state = KillSwitchState()
+        with self._lock_ctx():
+            if store.kill_switch_state is None:
+                store.kill_switch_state = KillSwitchState()
+
+    def _lock_ctx(self):
+        if hasattr(self._store, "get_lock"):
+            return self._store.get_lock()
+        from contextlib import nullcontext
+        return nullcontext()
 
     @property
     def _state(self) -> KillSwitchState:
@@ -26,7 +35,7 @@ class KillSwitchService:
             raise QuantError("KILL_SWITCH_ACTIVE", f"Cannot {action}: kill switch is active", status_code=503)
 
     def trigger(self, triggered_by: str, reason: str) -> KillSwitchState:
-        with self._store.get_lock():
+        with self._lock_ctx():
             self._state.status = KillSwitchStatus.ACTIVE
             self._state.triggered_by = triggered_by
             self._state.trigger_reason = reason
@@ -45,11 +54,30 @@ class KillSwitchService:
                 payload={"reason": reason, "status": KillSwitchStatus.ACTIVE.value},
             ))
 
+        # ?????????????
+        alert_service = getattr(self._store, "alert_notification_service", None)
+        if alert_service is not None:
+            try:
+                alert_service.send_alert(
+                    level=AlertLevel.CRITICAL,
+                    title=f"??????????{reason}",
+                    message=f"Kill-Switch has been triggered by '{triggered_by}'. Reason: {reason}. All live trading and order submissions are halted.",
+                    metadata={
+                        "triggered_by": triggered_by,
+                        "reason": reason,
+                        "status": KillSwitchStatus.ACTIVE.value,
+                        "triggered_at": self._state.triggered_at.isoformat() if self._state.triggered_at else None,
+                    },
+                    source="kill_switch",
+                )
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("kill_switch_alert_broadcast_error", error=str(exc)[:200])
+
         return self._state
 
     def recover(self, recovered_by: str, reason: str, approval_id: str, mode: str = "paper") -> KillSwitchState:
         _assert_paper_only(mode)
-        with self._store.get_lock():
+        with self._lock_ctx():
             if not self.is_active():
                 raise QuantError("INVALID_STATE", "Kill switch is not active, cannot recover", status_code=400)
 
@@ -90,6 +118,26 @@ class KillSwitchService:
                 resource_id="system",
                 payload={"reason": reason, "status": KillSwitchStatus.INACTIVE.value},
             ))
+
+        # ??????????
+        alert_service = getattr(self._store, "alert_notification_service", None)
+        if alert_service is not None:
+            try:
+                alert_service.send_alert(
+                    level=AlertLevel.INFO,
+                    title=f"??????????{reason}",
+                    message=f"Kill-Switch has been recovered by '{recovered_by}' with approval '{approval_id}'. Reason: {reason}.",
+                    metadata={
+                        "recovered_by": recovered_by,
+                        "approval_id": approval_id,
+                        "reason": reason,
+                        "status": KillSwitchStatus.INACTIVE.value,
+                        "recovered_at": self._state.recovered_at.isoformat() if self._state.recovered_at else None,
+                    },
+                    source="kill_switch",
+                )
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("kill_switch_recover_alert_error", error=str(exc)[:200])
 
         return self._state
 
