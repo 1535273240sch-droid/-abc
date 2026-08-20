@@ -25,6 +25,9 @@ import { useAppState } from '../components/Layout'
 import { DataState, Modal, PageIntro, Panel, StatCard, StatusBadge, TabGroup } from '../components/Primitives'
 import type { AgentTask, ApprovalItem } from '../types'
 
+// 当前登录操作人标识（待接入真实认证/SSO 身份体系后替换为动态获取）
+const CURRENT_OPERATOR = 'trader-lead'
+
 export default function Agents() {
   const { globalState, setGlobalState } = useAppState()
   const [loading, setLoading] = useState(true)
@@ -119,8 +122,8 @@ export default function Agents() {
     try {
       await api.decideApproval(id, {
         decision,
-        decided_by: 'trader-lead',
-        reject_reason: decision === 'rejected' ? '由交易员在 Agent 控制台驳回' : undefined,
+        decided_by: CURRENT_OPERATOR,
+        reject_reason: decision === 'rejected' ? `由 ${CURRENT_OPERATOR} 在 Agent 控制台驳回` : undefined,
       })
       setActionSuccess(`✓ 审批工单 ${id} 已成功${decision === 'approved' ? '批准' : '拒绝'}，系统已即时流转`)
       await loadAgentData(true)
@@ -229,10 +232,10 @@ export default function Agents() {
       {/* Top 4 Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatCard
-          label="活跃编排 Agent 数"
-          value="4 / 4"
-          caption="总指挥 / 投研 / 执行 / 风控"
-          tone="positive"
+          label="执行中推演任务"
+          value={`${tasks.filter(t => t.status === '执行中').length} / ${tasks.length}`}
+          caption="实时统计在途与总任务数"
+          tone={tasks.some(t => t.status === '执行中') ? 'positive' : 'neutral'}
         />
         <StatCard
           label="已执行推演任务"

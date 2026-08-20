@@ -40,7 +40,13 @@ class ManagedAdapter:
         with self._lock:
             self._status = AdapterConnectionStatus.CONNECTING
             self._last_error = None
-            # Simulate connection latency
+            if hasattr(self._adapter, "connect"):
+                try:
+                    self._adapter.connect()
+                except Exception as e:
+                    self._status = AdapterConnectionStatus.FAILED
+                    self._last_error = str(e)
+                    raise
             self._latency_ms = 42 if self.name in ("binance",) else 58
             self._status = AdapterConnectionStatus.CONNECTED
             return self._build_health()

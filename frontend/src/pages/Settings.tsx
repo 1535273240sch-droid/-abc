@@ -271,9 +271,9 @@ export default function Settings() {
               <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>API Gateway & BFF 节点</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
                 <div>应用名称: <code className="cell-mono">{systemStatus?.app_name || 'enterprise-ai-quant'}</code></div>
-                <div>应用运行时间: <code className="cell-mono">{systemStatus?.uptime_seconds ? `${systemStatus.uptime_seconds}s` : '—'}</code></div>
-                <div>Redis 缓存集群: <code className="cell-mono">redis_quant_cache (v7.2)</code></div>
-                <div>事件总线 Channel: <code className="cell-mono">quant.events.v1</code></div>
+                <div>应用运行时间: <code className="cell-mono">{systemStatus?.uptime_seconds ? `${Math.floor(systemStatus.uptime_seconds)}s` : '—'}</code></div>
+                <div>持久化存储: <code className={`cell-mono text-${systemStatus?.storage?.enabled ? 'positive' : 'negative'}`}>{systemStatus?.storage?.enabled ? `${systemStatus.storage.backend} (已启用)` : '未启用'}</code></div>
+                <div>存储 DSN: <code className="cell-mono">{systemStatus?.storage?.dsn_configured ? '已配置' : '未配置'}</code></div>
               </div>
             </div>
           </div>

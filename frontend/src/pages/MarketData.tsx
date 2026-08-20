@@ -306,12 +306,18 @@ export default function MarketData() {
                 </div>
                 <div style={{ padding: 12, backgroundColor: 'var(--bg-card-subtle)', borderRadius: 'var(--radius-md)' }}>
                   <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>可用性 (Usability)</div>
-                  <div className="cell-mono" style={{ fontSize: 18, fontWeight: 700, marginTop: 4 }}>100%</div>
-                  <div style={{ fontSize: 10, color: 'var(--color-positive)', marginTop: 2 }}>零跳跃 · 无乱序</div>
+                  <div className={`cell-mono text-${marketQuality?.usable === false ? 'negative' : 'positive'}`} style={{ fontSize: 18, fontWeight: 700, marginTop: 4 }}>
+                    {marketQuality ? (marketQuality.usable ? '可用' : '不可用') : '检测中'}
+                  </div>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
+                    实时行情 {marketQuality?.ticker_count ?? tickers.length} 条在途
+                  </div>
                 </div>
                 <div style={{ padding: 12, backgroundColor: 'var(--bg-card-subtle)', borderRadius: 'var(--radius-md)' }}>
                   <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>3-Sigma 离群过滤器</div>
-                  <div className="cell-mono" style={{ fontSize: 18, fontWeight: 700, marginTop: 4 }}>0 次异常阻断</div>
+                  <div className={`cell-mono text-${(marketQuality?.issues?.length ?? 0) > 0 ? 'negative' : 'positive'}`} style={{ fontSize: 18, fontWeight: 700, marginTop: 4 }}>
+                    {marketQuality ? `${marketQuality.issues?.length ?? 0} 次异常阻断` : '检测中'}
+                  </div>
                   <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>盘口交叉与跳价实时防御</div>
                 </div>
               </div>

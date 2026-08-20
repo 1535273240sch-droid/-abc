@@ -256,7 +256,7 @@ class CredentialService:
                 adapter = build_live_adapter(
                     record["adapter_name"], creds,
                     base_url=record.get("base_url"),
-                    dry_run=not settings.live_trading_enabled,
+                    dry_run=not settings.live_trading_enabled and not is_demo,
                     is_demo=is_demo,
                 )
             except (QuantError, AdapterError) as exc:

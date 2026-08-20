@@ -29,7 +29,9 @@ interface TestResultMap {
   }
 }
 
-const SERVER_OUTBOUND_IP = '43.108.98.174'
+// 服务器出口 IP（用于交易所 API 白名单配置提示）
+// 优先读取环境变量 VITE_SERVER_OUTBOUND_IP，未配置时使用当前部署值
+const SERVER_OUTBOUND_IP = (import.meta.env.VITE_SERVER_OUTBOUND_IP as string | undefined) ?? '43.108.98.174'
 
 const SUPPORTED_EXCHANGES = [
   { id: 'binance', name: 'Binance (币安)', defaultBaseUrl: 'https://api.binance.com', requiresPassphrase: false, tip: '支持现货与 U 本位合约。如开启 IP 限制请添加白名单。' },

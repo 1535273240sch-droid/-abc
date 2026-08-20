@@ -100,6 +100,15 @@ export interface HealthResponse {
   timestamp?: string
 }
 
+export interface SystemStatusStorage {
+  enabled: boolean
+  backend: string
+  format?: string | null
+  path?: string | null
+  dsn_configured?: boolean
+  error?: string | null
+}
+
 export interface SystemStatusResponse {
   app_name: string
   app_version: string
@@ -107,6 +116,7 @@ export interface SystemStatusResponse {
   uptime_seconds: number
   status: string
   timestamp: string
+  storage?: SystemStatusStorage
 }
 
 export interface SymbolResponse {

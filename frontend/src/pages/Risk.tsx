@@ -39,6 +39,7 @@ export default function Risk() {
   const [triggerReason, setTriggerReason] = useState('市场突发流动性枯竭或异常价格跳跃')
   const [triggerBy, setTriggerBy] = useState('risk_officer_s1')
   const [isSubmittingTrigger, setIsSubmittingTrigger] = useState(false)
+  const [triggerError, setTriggerError] = useState<string | null>(null)
 
   // Recovery Form State
   const [approvalId, setApprovalId] = useState('appr-83844125b7fc')
@@ -140,6 +141,7 @@ export default function Risk() {
   // Handle Trigger Kill Switch
   const handleTriggerKillSwitch = async () => {
     setIsSubmittingTrigger(true)
+    setTriggerError(null)
     try {
       const res = await api.triggerKillSwitch({
         triggered_by: triggerBy,
@@ -151,7 +153,7 @@ export default function Risk() {
       setIsTriggerModalOpen(false)
       loadRiskData(true)
     } catch (err: any) {
-      setRecoverError(err?.message || '触发 Kill Switch 失败')
+      setTriggerError(err?.message || '触发 Kill Switch 失败')
     } finally {
       setIsSubmittingTrigger(false)
     }
@@ -270,23 +272,23 @@ export default function Risk() {
         <StatCard
           label="活动风控规则数量"
           value={`${riskRules.length} 条生效`}
-          change="100% 规则在线"
+          change={riskRules.length === 0 ? '等待数据' : `${riskRules.filter((r) => r.result === '通过').length} 通过 · ${riskRules.filter((r) => r.result === '阻断').length} 阻断`}
           caption="最大名义价值 / 最小下单"
-          tone="positive"
+          tone={riskRules.some((r) => r.result === '阻断') ? 'negative' : 'positive'}
           icon={<Scale size={18} />}
         />
         <StatCard
           label="剩余风控预算 (Risk Budget)"
-          value="$1,000,000.00"
-          change="充足"
+          value={simResult ? simResult.remainingRiskBudget : '推演后获取'}
+          change={simResult ? (simResult.decision === 'PASSED' ? '校验通过' : '校验未通过') : '待推演'}
           caption="单日最大回撤上限保护"
-          tone="positive"
+          tone={simResult ? (simResult.decision === 'PASSED' ? 'positive' : 'negative') : 'neutral'}
           icon={<Zap size={18} />}
         />
         <StatCard
-          label="前置拦截平均耗时"
-          value="1.2ms"
-          change="目标 < 5ms"
+          label="前置校验覆盖"
+          value={riskRules.length === 0 ? '加载中' : `${riskRules.length} 项规则`}
+          change={riskRules.length === 0 ? '等待数据' : '实时生效'}
           caption="内存零拷贝预检"
           tone="positive"
           icon={<Activity size={18} />}
@@ -472,6 +474,11 @@ export default function Risk() {
             <label>熔断原因 (reason)</label>
             <input className="form-input" value={triggerReason} onChange={(e) => setTriggerReason(e.target.value)} />
           </div>
+          {triggerError && (
+            <div style={{ padding: '10px 12px', borderRadius: 'var(--radius-md)', backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--color-negative)', color: 'var(--color-negative)', fontSize: 12 }}>
+              {triggerError}
+            </div>
+          )}
         </div>
       </Modal>
 

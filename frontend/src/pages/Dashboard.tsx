@@ -18,11 +18,7 @@ export default function Dashboard() {
   const [positions, setPositions] = useState<Position[]>([])
   const [strategies, setStrategies] = useState<Strategy[]>([])
   const [riskRules, setRiskRules] = useState<RiskRule[]>([])
-  const [services, setServices] = useState<SystemService[]>([
-    { name: 'Core Engine Gateway', status: '正常', latency: '8ms', region: 'Live Localhost', version: 'v0.2.0' },
-    { name: 'PostgreSQL 16 Store', status: '正常', latency: '2ms', region: 'Primary Cluster', version: 'v16.3' },
-    { name: 'Redis 7 EventBus', status: '正常', latency: '1ms', region: 'Pub/Sub Channel', version: 'v7.2.4' }
-  ])
+  const [services, setServices] = useState<SystemService[]>([])
 
   // Initial full load
   const loadData = async (silent = false) => {
@@ -62,25 +58,38 @@ export default function Dashboard() {
         connected = true
       }
       if (statusRes) {
+        const mapAdapterStatus = (s: string): SystemService['status'] => {
+          if (s === 'connected' || s === 'active' || s === 'ok') return '正常'
+          if (s === 'degraded' || s === 'rate_limited') return '降级'
+          return '异常'
+        }
         const adapterSvcs: SystemService[] = (adaptersRes || []).map((ad) => ({
           name: `${ad.name.toUpperCase()} Adapter`,
-          status: ad.status === 'connected' || ad.status === 'active' || ad.status === 'ok' ? '正常' : '正常',
+          status: mapAdapterStatus(ad.status),
           latency: `${ad.latency_ms}ms`,
-          region: ad.is_rate_limited ? '限流保护' : '低延迟链路',
+          region: ad.is_rate_limited ? '限流保护' : (ad.status === 'disconnected' ? '连接断开' : '低延迟链路'),
           version: 'v1.0'
         }))
+
+        const storageEnabled = statusRes?.storage?.enabled === true
+        const storageBackend = statusRes?.storage?.backend || 'unknown'
 
         setServices([
           {
             name: statusRes.app_name,
-            status: statusRes.status === 'ok' ? '正常' : '降级',
-            latency: '8ms',
-            region: `模式: ${statusRes.mode} · 运行: ${statusRes.uptime_seconds}s`,
+            status: statusRes.status === 'ok' || statusRes.status === 'running' ? '正常' : '降级',
+            latency: '本地',
+            region: `模式: ${statusRes.mode} · 运行: ${Math.floor(statusRes.uptime_seconds)}s`,
             version: statusRes.app_version
           },
           ...adapterSvcs,
-          { name: 'PostgreSQL 16 Store', status: '正常', latency: '2ms', region: '持久化引擎', version: 'v16.3' },
-          { name: 'Redis 7 EventBus', status: '正常', latency: '1ms', region: '事件总线', version: 'v7.2' }
+          {
+            name: 'PostgreSQL Store',
+            status: storageEnabled ? '正常' : '异常',
+            latency: '本地',
+            region: storageEnabled ? `持久化引擎 (${storageBackend})` : '存储未启用',
+            version: 'v16'
+          }
         ])
         connected = true
       }
@@ -132,11 +141,33 @@ export default function Dashboard() {
   }
 
   const baseCapital = 1000000.00
-  const totalEquity = (baseCapital + totalUnrealizedPnlNum).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const totalEquityNum = baseCapital + totalUnrealizedPnlNum
+  const totalEquity = totalEquityNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   const pnlFormatted = totalUnrealizedPnlNum >= 0
-    ? `+$${totalUnrealizedPnlNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-    : `-$${Math.abs(totalUnrealizedPnlNum).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    ? `+${totalUnrealizedPnlNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    : `-${Math.abs(totalUnrealizedPnlNum).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
   const pnlTone = totalUnrealizedPnlNum >= 0 ? 'positive' : 'negative'
+
+  // 基于真实盈亏计算的衍生指标
+  const pnlPercentNum = baseCapital > 0 ? (totalUnrealizedPnlNum / baseCapital) * 100 : 0
+  const pnlPercentFormatted = `${pnlPercentNum >= 0 ? '+' : ''}${pnlPercentNum.toFixed(2)}%`
+  const equityPointNum = totalEquityNum / 10000
+  const equityCurve = [100, +(100 + pnlPercentNum).toFixed(2), +equityPointNum.toFixed(2)]
+
+  // 基于真实策略状态统计
+  const runningCount = strategies.filter((s) => s.status === '运行中' || s.status === '纸面运行').length
+  const strategyStatusText = strategies.length === 0
+    ? '暂无策略'
+    : runningCount === strategies.length ? '全部正常运行' : `${runningCount}/${strategies.length} 运行中`
+  const strategyTone = strategies.length === 0 ? 'neutral' : (runningCount === strategies.length ? 'positive' : 'warning')
+
+  // 基于真实风控规则统计
+  const blockedRules = riskRules.filter((r) => r.result === '阻断').length
+  const warningRules = riskRules.filter((r) => r.result === '观察').length
+  const riskStatusValue = riskRules.length === 0 ? '规则加载中' : (blockedRules > 0 ? `${blockedRules} 项阻断` : '风控就绪')
+  const riskChangeText = riskRules.length === 0 ? '等待数据' : `${blockedRules} 阻断 · ${warningRules} 观察`
+  const riskCaptionText = `${riskRules.length} 项前置规则生效`
+  const riskTone = blockedRules > 0 ? 'negative' : (warningRules > 0 ? 'warning' : 'positive')
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -186,7 +217,7 @@ export default function Dashboard() {
         <StatCard
           label="24h 未实现 PnL"
           value={pnlFormatted}
-          change={totalUnrealizedPnlNum >= 0 ? '+1.48%' : '-0.25%'}
+          change={pnlPercentFormatted}
           caption="盯市标记价自动刷新"
           tone={pnlTone}
           icon={<TrendingUp size={18} />}
@@ -194,17 +225,17 @@ export default function Dashboard() {
         <StatCard
           label="运行中策略 (Active Strategies)"
           value={`${strategies.length} 套策略`}
-          change="全部正常运行"
+          change={strategyStatusText}
           caption="网格 / 趋势 / 跨期套利"
-          tone="positive"
+          tone={strategyTone}
           icon={<Zap size={18} />}
         />
         <StatCard
           label="风控前置健康度 (Risk Status)"
-          value={isLiveApi ? '100% 风控就绪' : '检查中'}
-          change="0 违规阻断"
-          caption="4 项前置规则全天候生效"
-          tone="positive"
+          value={isLiveApi ? riskStatusValue : '检查中'}
+          change={riskChangeText}
+          caption={riskCaptionText}
+          tone={riskTone}
           icon={<ShieldCheck size={18} />}
         />
       </div>
@@ -213,16 +244,16 @@ export default function Dashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20 }}>
         <Panel
           title="账户总资产权益走势 (Equity Curve)"
-          subtitle="真实净值历史推演 (基于实时标的行情计算)"
-          action={<span className="cell-mono text-positive" style={{ fontSize: 13, fontWeight: 700 }}>+14.82% 累计收益</span>}
+          subtitle="基于实时持仓盯市盈亏计算"
+          action={<span className={`cell-mono text-${pnlTone}`} style={{ fontSize: 13, fontWeight: 700 }}>{pnlPercentFormatted} 累计收益</span>}
         >
           <div style={{ marginBottom: 12 }}>
-            <Sparkline values={[100, 101.2, 100.8, 103.5, 105.1, 104.2, 107.8, 109.3, 108.5, 112.4, 114.82]} tone="positive" />
+            <Sparkline values={equityCurve} tone={pnlTone} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)' }}>
             <span>起始本金: $1,000,000.00</span>
             <span>当前净资产: ${totalEquity}</span>
-            <span>峰值回撤: -2.14%</span>
+            <span>未实现盈亏: {pnlFormatted}</span>
           </div>
         </Panel>
 

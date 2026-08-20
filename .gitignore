@@ -22,3 +22,11 @@ npm-debug.log*
 .idea/
 .vscode/
 *.log
+
+# Sensitive files - never commit
+deploy/.env
+backups/
+docs-archive/
+*.sql.gz
+*.tar.gz
+*.bak

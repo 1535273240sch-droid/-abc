@@ -106,7 +106,18 @@ async def lifespan(app: FastAPI):
     store.save()
 
 
-app = FastAPI(title=settings.app_name, version=settings.app_version, lifespan=lifespan)
+docs_url = "/docs" if (settings.environment.lower() not in {"production", "prod"} or settings.debug) else None
+redoc_url = "/redoc" if (settings.environment.lower() not in {"production", "prod"} or settings.debug) else None
+openapi_url = "/openapi.json" if (settings.environment.lower() not in {"production", "prod"} or settings.debug) else None
+
+app = FastAPI(
+    title=settings.app_name,
+    version=settings.app_version,
+    lifespan=lifespan,
+    docs_url=docs_url,
+    redoc_url=redoc_url,
+    openapi_url=openapi_url,
+)
 
 if settings.allowed_hosts != ["*"]:
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
