@@ -1809,3 +1809,194 @@ textarea:focus {
     padding: 14px 12px 32px;
   }
 }
+
+/* ── K线 · AI 智能分析面板 ───────────────────────────────────── */
+.kl-btn--ai {
+  border-color: #2f81f7;
+  color: #7fb3ff;
+  font-weight: 600;
+}
+
+.kl-btn--ai:hover:not(:disabled) {
+  background: #12233d;
+  color: #a9cdff;
+}
+
+.kl-btn--ai:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.kl-error--ai {
+  margin: 8px 14px 0;
+  background: #2d1518;
+  border: 1px solid #7a3b3b;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.kl-ai {
+  border-top: 1px solid #1e2a3a;
+  background: #0f1727;
+  padding: 14px 16px 18px;
+}
+
+.kl-ai-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.kl-ai-badge {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: 999px;
+  letter-spacing: 1px;
+}
+
+.kl-ai-badge--bull {
+  background: rgba(38, 166, 154, 0.16);
+  color: #35c3b5;
+  border: 1px solid #26a69a;
+}
+
+.kl-ai-badge--bear {
+  background: rgba(239, 83, 80, 0.16);
+  color: #f0716e;
+  border: 1px solid #ef5350;
+}
+
+.kl-ai-badge--flat {
+  background: rgba(245, 166, 35, 0.14);
+  color: #f5a623;
+  border: 1px solid #b97d1e;
+}
+
+.kl-ai-confidence {
+  font-size: 12px;
+  color: #c9d4e5;
+  background: #131b2a;
+  border: 1px solid #263449;
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+
+.kl-ai-meta {
+  font-size: 12px;
+  color: #8492a6;
+}
+
+.kl-ai-src {
+  margin-left: auto;
+  font-size: 11px;
+  color: #62748d;
+}
+
+.kl-ai-summary {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #e6edf7;
+}
+
+.kl-ai-levels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.kl-ai-levels-col {
+  background: #0d1420;
+  border: 1px solid #1e2a3a;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.kl-ai-levels-col--sup {
+  border-color: rgba(38, 166, 154, 0.35);
+}
+
+.kl-ai-levels-col--res {
+  border-color: rgba(239, 83, 80, 0.35);
+}
+
+.kl-ai-levels-title {
+  font-size: 11px;
+  color: #62748d;
+  margin-right: 2px;
+}
+
+.kl-ai-chip {
+  font-size: 12px;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.kl-ai-chip sup,
+.kl-ai-chip em {
+  font-style: normal;
+  font-size: 10px;
+  opacity: 0.75;
+  margin-left: 2px;
+}
+
+.kl-ai-chip--sup {
+  color: #35c3b5;
+  background: rgba(38, 166, 154, 0.12);
+  border: 1px solid rgba(38, 166, 154, 0.4);
+}
+
+.kl-ai-chip--res {
+  color: #f0716e;
+  background: rgba(239, 83, 80, 0.12);
+  border: 1px solid rgba(239, 83, 80, 0.4);
+}
+
+.kl-ai-chip--none {
+  color: #62748d;
+}
+
+.kl-ai-detail {
+  font-size: 13px;
+  line-height: 1.8;
+  color: #c9d4e5;
+  white-space: pre-wrap;
+  background: #0d1420;
+  border: 1px solid #1e2a3a;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+
+.kl-ai-suggestion {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #e6edf7;
+  background: rgba(47, 129, 247, 0.08);
+  border: 1px solid rgba(47, 129, 247, 0.3);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+.kl-ai-suggestion b {
+  color: #7fb3ff;
+}
+
+@media (max-width: 768px) {
+  .kl-ai-levels {
+    grid-template-columns: 1fr;
+  }
+
+  .kl-ai-src {
+    margin-left: 0;
+  }
+}

@@ -5,33 +5,31 @@
 
 ---
 
-## 📅 2026-08-20 · 新增功能：盈亏分析报表 + 专业K线图表
+## 📅 2026-08-20 · 新增功能：K线 AI 智能分析 + 自动画线（附 3 个 Bug 修复）
 
-**提交哈希**：`4599ccc`
-**Commit 标题**：`feat: add performance analytics report and professional kline chart`
+**Commit 标题**：`feat: add AI-powered kline analysis with auto-drawn support/resistance levels`
 
-### 🆕 新增：盈亏分析报表（盈亏分析页 `/analytics`）
-- 后端新增 `PerformanceAnalyticsService`：聚合成交/持仓/MTM 数据，纯内存计算零负担
-- 新 API `GET /api/v1/analytics/performance`：
-  - 总盈亏、已实现/未实现盈亏、胜率、盈亏比
-  - 夏普比率（年化）、最大回撤、最佳/最差单日、日均盈亏/日波动
-  - 每日盈亏序列（MTM 口径）+ 累计盈亏曲线
-  - 按币种分解（盈亏、数量、开仓价、现价、成交数、名义额）
-- 前端新增「盈亏分析」页面：指标卡片、每日盈亏柱状图、累计盈亏曲线（纯 SVG）、币种明细表、30/90/180 天窗口切换
+### 🆕 新增：K线 AI 智能分析（K线图表页「AI 智能分析」按钮）
+- 后端新增 `KlineAnalysisService`：本地精确计算 MA(7/25/99)/RSI14/MACD/BOLL/ATR14/量比 + 摆动点支撑阻力检测（触点强度评分）
+- 新 API `GET /api/v1/analytics/kline-analysis?symbol=&period=`：
+  - 调用内置 stepfun 大模型（step-3.7-flash）生成趋势研判 / 置信度 / 多维度分析 / 操作建议
+  - 返回支撑位与阻力位价格，前端自动在图上画线（绿色虚线=支撑，红色虚线=阻力）
+  - AI 返回价格做合理性校验（支撑须低于现价、阻力须高于现价，区间过滤）
+  - JSON 截断自动修复（括号闭合）+ 字段级抢救解析，解析容错三层兜底
+  - 模型不可用时自动降级为本地指标引擎，功能不中断（面板标注数据来源）
+- 前端 K线页升级：
+  - 新增「AI 智能分析」按钮 + 分析报告面板（趋势徽章 / 置信度 / 支撑阻力卡片 / 详细研判 / 操作建议）
+  - 画线工具样式统一为系统暗色主题（此前为 klinecharts 默认橙色）
+  - 切换交易对 / 周期自动清理 AI 画线与报告，「清除画线」兼容清除 AI 线
 
-### 🆕 新增：专业K线图表（K线图表页 `/kline`）
-- 集成 klinecharts 9.8（交易所级开源K线库）
-- 新 API `GET /api/v1/market/klines`：OHLCV 数据，带过期自动刷新（缓存超过 3 个周期自动从 Binance 拉新，修复了旧回测数据污染缓冲区的问题）
-- 6 个周期：1m / 5m / 15m / 1h / 4h / 1d
-- 6 个技术指标：MA、VOL、BOLL、MACD、RSI、KDJ（可自由叠加）
-- 7 个画线工具：趋势线、射线、水平线、垂直线、矩形、斐波那契、价格线
-- 每 6 秒自动刷新最新K线，暗色主题匹配控制台风格
+### 🐛 Bug 修复
+- **修复 K线 6 秒轮询失效**：前端轮询传 `limit=2`，低于后端校验下限 `ge=10`，每次轮询 422 被静默吞掉，图表首次加载后不再更新 → 改为 `limit=10`
+- **修复 AI 调用 30 秒超时截断**：`ai_service.chat` 的 HTTP 超时写死 30 秒，长 prompt 分析生成超时被掐断 → 超时参数化（默认 30s 保持兼容，K线分析传 90s）
+- **修复无效交易对无限递归**：`kline_service` 中 `get_klines` ↔ `fetch_history` 互相调用，无效 symbol 时无限递归导致请求挂死 → 加重入保护集，秒回 `INSUFFICIENT_DATA` 友好错误
 
-### 🔧 涉及文件（15 个：5 新增 + 10 修改）
-- 后端新增：`performance_analytics_service.py`、`api/v1/analytics.py`
-- 后端修改：`market.py`（K线端点）、`memory.py` / `db_store.py`（服务接线）、`main.py`（路由注册）
-- 前端新增：`KlineChart.tsx`、`Kline.tsx`、`Analytics.tsx`
-- 前端修改：`api.ts`、`App.tsx`、`Layout.tsx`（导航）、`styles.css`、`package.json`（klinecharts 依赖）
+### 📊 数据
+- 新增 1 个后端服务文件（`kline_analysis_service.py`，约 500 行）
+- 修改 7 个文件：后端 `analytics.py` / `ai_service.py` / `kline_service.py` / `memory.py` / `db_store.py`，前端 `api.ts` / `KlineChart.tsx` / `Kline.tsx` / `styles.css`
 
 ---
 

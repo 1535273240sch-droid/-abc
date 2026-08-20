@@ -61,6 +61,7 @@ class KlineService:
         self._timeout = timeout
         self.last_fetch_at: dict[tuple[str, str], float] = {}
         self.fetch_errors: dict[tuple[str, str], str] = {}
+        self._fetching: set[tuple[str, str]] = set()
 
     # ── public read API (used by strategy framework) ──────────────────
 
@@ -74,11 +75,19 @@ class KlineService:
         with self._lock:
             bars = list(self._buffers.get(key, []))
 
-        if len(bars) < count:
+        with self._lock:
+            busy = key in self._fetching
+        if len(bars) < count and not busy:
             # try warm storage first (cheap), then exchange (network)
             bars = self._backfill_from_store(symbol, period, count, existing=bars)
-        if len(bars) < count:
-            fetched = self.fetch_history(symbol, period, limit=min(count, 1000))
+        if len(bars) < count and not busy:
+            with self._lock:
+                self._fetching.add(key)
+            try:
+                fetched = self.fetch_history(symbol, period, limit=min(count, 1000))
+            finally:
+                with self._lock:
+                    self._fetching.discard(key)
             if fetched:
                 bars = fetched
 

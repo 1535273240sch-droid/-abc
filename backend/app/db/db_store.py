@@ -173,6 +173,8 @@ class DBStore(InMemoryStore):
         self.strategy_evolution_service = StrategyEvolutionService(self)
         from app.services.performance_analytics_service import PerformanceAnalyticsService
         self.performance_analytics_service = PerformanceAnalyticsService(self)
+        from app.services.kline_analysis_service import KlineAnalysisService
+        self.kline_analysis_service = KlineAnalysisService(self)
         self.alert_notification_service = AlertNotificationService(self)
         self.live_guard_service = LiveGuardService(self)
 

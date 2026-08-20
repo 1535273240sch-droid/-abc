@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { dispose, init } from 'klinecharts'
 import type { Chart, KLineData } from 'klinecharts'
 import { api } from '../api'
+import type { KlineAnalysis, KlineLevel } from '../api'
 
 interface IndicatorConfig {
   key: string
@@ -78,6 +79,20 @@ const DARK_STYLES: any = {
     vertical: { text: { backgroundColor: '#2a4a6b', color: '#e6edf7' } },
   },
   separator: { color: '#1c2937' },
+  // drawing overlays follow the same dark palette
+  overlay: {
+    point: {
+      backgroundColor: '#2f81f7',
+      borderColor: '#0d1420',
+      activeBackgroundColor: '#f5a623',
+    },
+    line: { color: '#f5a623', size: 1, style: 'solid', dashedValue: [4, 3] },
+    rect: {
+      backgroundColor: 'rgba(47, 129, 247, 0.12)',
+      borderColor: '#2f81f7',
+    },
+    text: { color: '#8492a6' },
+  },
 }
 
 function toKlineData(bar: { timestamp: number; open: number; high: number; low: number; close: number; volume: number }): KLineData {
@@ -107,6 +122,12 @@ export default function KlineChart({ symbol }: { symbol: string }) {
     kdj: false,
   })
 
+  // AI analysis state
+  const [analyzing, setAnalyzing] = useState(false)
+  const [analysis, setAnalysis] = useState<KlineAnalysis | null>(null)
+  const [analysisError, setAnalysisError] = useState<string | null>(null)
+  const aiOverlayIds = useRef<string[]>([])
+
   // ── init chart once ────────────────────────────────────────────────
   useEffect(() => {
     if (!containerRef.current) return
@@ -117,6 +138,7 @@ export default function KlineChart({ symbol }: { symbol: string }) {
     chart.createIndicator('MA', false, { id: 'candle_pane' })
     chart.createIndicator('VOL', false, { id: 'vol_pane' })
     return () => {
+      aiOverlayIds.current = []
       if (containerRef.current) dispose(containerRef.current)
       chartRef.current = null
     }
@@ -147,11 +169,19 @@ export default function KlineChart({ symbol }: { symbol: string }) {
     void loadAll()
   }, [loadAll])
 
-  // ── poll latest bar every 6s ──────────────────────────────────────
+  // reset AI panel when symbol / period changes
+  useEffect(() => {
+    clearAiOverlays()
+    setAnalysis(null)
+    setAnalysisError(null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [symbol, period])
+
+  // ── poll latest bar every 6s (backend needs limit >= 10) ──────────
   useEffect(() => {
     const timer = setInterval(async () => {
       try {
-        const bars = await api.klines(symbol, period, 2)
+        const bars = await api.klines(symbol, period, 10)
         const chart = chartRef.current
         if (chart && bars && bars.length > 0) {
           chart.updateData(toKlineData(bars[bars.length - 1]))
@@ -180,14 +210,89 @@ export default function KlineChart({ symbol }: { symbol: string }) {
   const startDraw = (type: string) => {
     const chart = chartRef.current
     if (!chart) return
-    chart.createOverlay(type)
+    chart.createOverlay({ type })
     setActiveTool(type)
   }
 
   const clearDraw = () => {
     if (chartRef.current) chartRef.current.removeOverlay()
+    aiOverlayIds.current = []
     setActiveTool(null)
   }
+
+  // ── AI analysis ────────────────────────────────────────────────────
+  function clearAiOverlays() {
+    const chart = chartRef.current
+    if (!chart) {
+      aiOverlayIds.current = []
+      return
+    }
+    aiOverlayIds.current.forEach((id) => {
+      try {
+        chart.removeOverlay(id)
+      } catch {
+        /* overlay may already be gone */
+      }
+    })
+    aiOverlayIds.current = []
+  }
+
+  function drawLevelLine(price: number, kind: 'support' | 'resistance', lastTs: number, strength: number) {
+    const chart = chartRef.current
+    if (!chart) return
+    const color = kind === 'support' ? '#26a69a' : '#ef5350'
+    const label = kind === 'support' ? `支撑 ${price}` : `阻力 ${price}`
+    try {
+      const id = chart.createOverlay({
+        type: 'horizontalStraightLine',
+        points: [{ timestamp: lastTs, price }],
+        styles: {
+          line: { color, size: 1, style: 'dashed', dashedValue: [6, 4] },
+          text: { color, size: 10, backgroundColor: '#0d1420' },
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        extendData: { aiLevel: kind, label, strength },
+      } as any)
+      if (id) aiOverlayIds.current.push(id)
+    } catch {
+      /* drawing failure is non-fatal */
+    }
+  }
+
+  const runAnalysis = async () => {
+    setAnalyzing(true)
+    setAnalysisError(null)
+    try {
+      const result = await api.klineAnalysis(symbol, period)
+      if (result.error) {
+        setAnalysis(null)
+        setAnalysisError(result.detail || 'AI 分析失败：数据不足')
+        return
+      }
+      setAnalysis(result)
+      // auto-draw levels on the chart
+      clearAiOverlays()
+      const chart = chartRef.current
+      const bars = chart ? await api.klines(symbol, period, 10).catch(() => []) : []
+      const lastTs = bars && bars.length > 0 ? bars[bars.length - 1].timestamp : Date.now()
+      result.levels.supports.forEach((lv: KlineLevel) => drawLevelLine(lv.price, 'support', lastTs, lv.strength))
+      result.levels.resistances.forEach((lv: KlineLevel) => drawLevelLine(lv.price, 'resistance', lastTs, lv.strength))
+    } catch (e) {
+      setAnalysis(null)
+      setAnalysisError(e instanceof Error ? e.message : 'AI 分析请求失败')
+    } finally {
+      setAnalyzing(false)
+    }
+  }
+
+  const clearAnalysis = () => {
+    clearAiOverlays()
+    setAnalysis(null)
+    setAnalysisError(null)
+  }
+
+  const an = analysis?.analysis
+  const trendClass = an?.trend === 'bullish' ? 'kl-ai-badge--bull' : an?.trend === 'bearish' ? 'kl-ai-badge--bear' : 'kl-ai-badge--flat'
 
   return (
     <div className="kl-chart">
@@ -228,10 +333,73 @@ export default function KlineChart({ symbol }: { symbol: string }) {
             清除画线
           </button>
         </div>
+        <div className="kl-toolbar__group">
+          <button className="kl-btn kl-btn--ai" onClick={() => void runAnalysis()} disabled={analyzing}>
+            {analyzing ? 'AI 分析中…' : 'AI 智能分析'}
+          </button>
+          {analysis && (
+            <button className="kl-btn" onClick={clearAnalysis}>
+              收起分析
+            </button>
+          )}
+        </div>
       </div>
       {error && <div className="kl-error">{error}</div>}
       <div ref={containerRef} className="kl-container" />
       {loading && <div className="kl-loading">加载 {symbol} · {period} K线中…</div>}
+
+      {analysisError && (
+        <div className="kl-error kl-error--ai">
+          AI 分析失败：{analysisError}
+        </div>
+      )}
+
+      {analysis && an && (
+        <div className="kl-ai">
+          <div className="kl-ai-head">
+            <span className={`kl-ai-badge ${trendClass}`}>{an.trend_label}</span>
+            <span className="kl-ai-confidence">置信度 {an.confidence}%</span>
+            <span className="kl-ai-meta">
+              {analysis.symbol} · {analysis.period} · 现价 {analysis.price.last}
+              （{analysis.price.change_pct >= 0 ? '+' : ''}{analysis.price.change_pct}%）
+            </span>
+            <span className="kl-ai-src">
+              分析引擎：{analysis.source === 'local' ? '本地指标引擎（模型离线降级）' : analysis.source}
+            </span>
+          </div>
+          <p className="kl-ai-summary">{an.summary}</p>
+          <div className="kl-ai-levels">
+            <div className="kl-ai-levels-col kl-ai-levels-col--sup">
+              <span className="kl-ai-levels-title">支撑位（已自动画线）</span>
+              {analysis.levels.supports.length > 0 ? (
+                analysis.levels.supports.map((lv) => (
+                  <span key={`s-${lv.price}`} className="kl-ai-chip kl-ai-chip--sup">
+                    {lv.price}
+                    {lv.strength > 0 && <em>×{lv.strength}</em>}
+                  </span>
+                ))
+              ) : (
+                <span className="kl-ai-chip kl-ai-chip--none">无</span>
+              )}
+            </div>
+            <div className="kl-ai-levels-col kl-ai-levels-col--res">
+              <span className="kl-ai-levels-title">阻力位（已自动画线）</span>
+              {analysis.levels.resistances.length > 0 ? (
+                analysis.levels.resistances.map((lv) => (
+                  <span key={`r-${lv.price}`} className="kl-ai-chip kl-ai-chip--res">
+                    {lv.price}
+                    {lv.strength > 0 && <em>×{lv.strength}</em>}
+                  </span>
+                ))
+              ) : (
+                <span className="kl-ai-chip kl-ai-chip--none">无</span>
+              )}
+            </div>
+          </div>
+          {an.detail && <div className="kl-ai-detail">{an.detail}</div>}
+          {an.suggestion && <div className="kl-ai-suggestion"><b>操作建议：</b>{an.suggestion}</div>}
+        </div>
+      )}
     </div>
   )
 }

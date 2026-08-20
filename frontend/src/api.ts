@@ -659,6 +659,8 @@ export const api = {
   klines: (symbol: string, period: string, limit: number = 500) =>
     request<KlineBar[]>(`/api/v1/market/klines?symbol=${encodeURIComponent(symbol)}&period=${period}&limit=${limit}`),
   performance: (days: number = 90) => request<PerformanceReport>(`/api/v1/analytics/performance?days=${days}`),
+  klineAnalysis: (symbol: string, period: string) =>
+    request<KlineAnalysis>(`/api/v1/analytics/kline-analysis?symbol=${encodeURIComponent(symbol)}&period=${period}`),
   orderbook: (symbol: string) => request<OrderBookResponse>(`/api/v1/market/orderbook/${encodeURIComponent(symbol)}`),
   trades: (symbol: string) => request<TradeResponse[]>(`/api/v1/market/trades/${encodeURIComponent(symbol)}`),
   fundingRates: () => request<FundingRateResponse[]>('/api/v1/market/funding'),
@@ -897,4 +899,49 @@ export interface PerformanceReport {
   summary: PerformanceSummary
   daily_series: PerformanceDailyPoint[]
   symbols: PerformanceSymbolRow[]
+}
+
+
+export interface KlineLevel {
+  price: number
+  strength: number
+}
+
+export interface KlineAnalysis {
+  generated_at: string
+  symbol: string
+  period: string
+  source: string
+  error?: string
+  detail?: string
+  price: {
+    last: number
+    change_pct: number
+    range_high: number
+    range_low: number
+  }
+  indicators: {
+    ma7: number | null
+    ma25: number | null
+    ma99: number | null
+    ma_trend: string
+    rsi14: number | null
+    macd: { dif: number | null; dea: number | null; hist: number | null }
+    boll: { upper: number | null; mid: number | null; lower: number | null; percent_b: number | null }
+    atr14: number | null
+    atr_pct: number | null
+    vol_ratio: number | null
+  }
+  levels: {
+    supports: KlineLevel[]
+    resistances: KlineLevel[]
+  }
+  analysis: {
+    trend: string
+    trend_label: string
+    confidence: number
+    summary: string
+    detail: string
+    suggestion: string
+  }
 }

@@ -50,7 +50,7 @@ class AIService:
             f"3. 语言保持中文专业机构级风格，逻辑清晰，数据准确。"
         )
 
-    def chat(self, provider_id: str, messages: list[dict], temperature: float, max_tokens: int) -> dict:
+    def chat(self, provider_id: str, messages: list[dict], temperature: float, max_tokens: int, timeout: float = 30.0) -> dict:
         provider = self._store.control_service.get_model_provider(provider_id)
         if not provider:
             raise QuantError("NOT_FOUND", f"Model provider {provider_id} not found", status_code=404)
@@ -98,7 +98,7 @@ class AIService:
         )
         started = time.perf_counter()
         try:
-            with urllib.request.urlopen(request, timeout=30) as response:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
                 body = json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
             err_msg = f"Model provider returned HTTP {exc.code}"
