@@ -1481,3 +1481,331 @@ textarea:focus {
   .lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
   .lg\:col-span-2 { grid-column: span 2; }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   K线图表 & 盈亏分析（2026-08-20 新增功能，kl- / an- 命名空间）
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── K线图表 ─────────────────────────────────────────────────── */
+.kl-page,
+.an-page {
+  padding: 20px 24px 48px;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.kl-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.kl-head h1 {
+  font-size: 20px;
+  margin: 0 0 4px;
+}
+
+.kl-sub {
+  margin: 0;
+  font-size: 13px;
+  color: #8492a6;
+}
+
+.kl-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #8492a6;
+}
+
+.kl-controls select {
+  background: #131b2a;
+  color: #e6edf7;
+  border: 1px solid #263449;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.kl-chart {
+  background: #0d1420;
+  border: 1px solid #1e2a3a;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.kl-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #1e2a3a;
+  background: #0f1727;
+}
+
+.kl-toolbar__group {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding-right: 10px;
+  border-right: 1px solid #1e2a3a;
+}
+
+.kl-toolbar__group:last-child {
+  border-right: none;
+  padding-right: 0;
+}
+
+.kl-btn {
+  background: transparent;
+  border: 1px solid #263449;
+  color: #8492a6;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.kl-btn:hover {
+  color: #e6edf7;
+  border-color: #3d5a73;
+}
+
+.kl-btn--active {
+  background: #1b4a75;
+  border-color: #2f81f7;
+  color: #ffffff;
+}
+
+.kl-btn--clear {
+  border-color: #7a3b3b;
+  color: #e58a8a;
+}
+
+.kl-btn--clear:hover {
+  background: #3b1d1d;
+  color: #ffabab;
+}
+
+.kl-container {
+  height: 480px;
+  width: 100%;
+}
+
+.kl-loading,
+.kl-error {
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #8492a6;
+}
+
+.kl-error {
+  color: #ef5350;
+}
+
+.kl-tips {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #62748d;
+  line-height: 1.6;
+}
+
+/* ── 盈亏分析 ────────────────────────────────────────────────── */
+.an-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.an-head h1 {
+  font-size: 20px;
+  margin: 0 0 4px;
+}
+
+.an-sub {
+  margin: 0;
+  font-size: 13px;
+  color: #8492a6;
+}
+
+.an-controls {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.an-btn {
+  background: transparent;
+  border: 1px solid #263449;
+  color: #8492a6;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.an-btn:hover {
+  color: #e6edf7;
+  border-color: #3d5a73;
+}
+
+.an-btn--active {
+  background: #1b4a75;
+  border-color: #2f81f7;
+  color: #ffffff;
+}
+
+.an-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.an-card {
+  background: #0d1420;
+  border: 1px solid #1e2a3a;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.an-card-label {
+  font-size: 12px;
+  color: #8492a6;
+  margin-bottom: 6px;
+}
+
+.an-card-value {
+  font-size: 19px;
+  font-weight: 600;
+  color: #e6edf7;
+  font-variant-numeric: tabular-nums;
+}
+
+.an-chart {
+  background: #0d1420;
+  border: 1px solid #1e2a3a;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+
+.an-chart-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 12px;
+  color: #e6edf7;
+}
+
+.an-svg {
+  width: 100%;
+  height: 220px;
+  display: block;
+}
+
+.an-zero {
+  stroke: #3d5a73;
+  stroke-dasharray: 4 4;
+}
+
+.an-bar-pos {
+  fill: #26a69a;
+}
+
+.an-bar-neg {
+  fill: #ef5350;
+}
+
+.an-line {
+  fill: none;
+  stroke: #2f81f7;
+  stroke-width: 2;
+}
+
+.an-area {
+  fill: rgba(47, 129, 247, 0.12);
+}
+
+.an-dot-pos {
+  fill: #26a69a;
+}
+
+.an-dot-neg {
+  fill: #ef5350;
+}
+
+.an-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 760px;
+}
+
+.an-table th {
+  text-align: left;
+  color: #8492a6;
+  font-weight: 500;
+  padding: 8px 10px;
+  border-bottom: 1px solid #1e2a3a;
+  white-space: nowrap;
+}
+
+.an-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #16202e;
+  color: #c9d4e5;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.an-pos {
+  color: #26a69a;
+}
+
+.an-neg {
+  color: #ef5350;
+}
+
+.an-flat {
+  color: #c9d4e5;
+}
+
+.an-empty {
+  text-align: center;
+  padding: 48px 0;
+  color: #62748d;
+  font-size: 13px;
+}
+
+.an-error {
+  background: #2d1518;
+  border: 1px solid #7a3b3b;
+  color: #ffabab;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+  .kl-container {
+    height: 360px;
+  }
+
+  .kl-page,
+  .an-page {
+    padding: 14px 12px 32px;
+  }
+}

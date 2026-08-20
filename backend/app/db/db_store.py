@@ -171,6 +171,8 @@ class DBStore(InMemoryStore):
         self.alpha_mining_service = AlphaMiningService(self)
         self.portfolio_optimizer_service = PortfolioOptimizerService(self)
         self.strategy_evolution_service = StrategyEvolutionService(self)
+        from app.services.performance_analytics_service import PerformanceAnalyticsService
+        self.performance_analytics_service = PerformanceAnalyticsService(self)
         self.alert_notification_service = AlertNotificationService(self)
         self.live_guard_service = LiveGuardService(self)
 

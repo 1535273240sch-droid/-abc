@@ -9,7 +9,7 @@ from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
 from app.adapters.protocol import AdapterError, ConnectionErrorAdapter, RateLimitError, RetryExhaustedError
-from app.api.v1 import adapters, agent, ai, alert, audit, auth, control, execution, framework, governance, live, market, order, portfolio, position, research, risk, strategy, system
+from app.api.v1 import adapters, agent, ai, alert, analytics, audit, auth, control, execution, framework, governance, live, market, order, portfolio, position, research, risk, strategy, system
 from app.core.api_key import extract_bearer_token, verify_api_key
 from app.core.auth import role_allows, verify_access_token
 from app.core.config import settings, validate_runtime_settings
@@ -244,6 +244,7 @@ app.include_router(risk.router)
 app.include_router(order.router)
 app.include_router(position.router)
 app.include_router(research.router)
+app.include_router(analytics.router)
 app.include_router(strategy.router)
 app.include_router(adapters.router)
 app.include_router(execution.router)

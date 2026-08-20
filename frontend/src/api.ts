@@ -656,6 +656,9 @@ export const api = {
   // Market Data (100% Real Live Feeds)
   symbols: () => request<SymbolResponse[]>('/api/v1/market/symbols'),
   tickers: () => request<TickerResponse[]>('/api/v1/market/tickers'),
+  klines: (symbol: string, period: string, limit: number = 500) =>
+    request<KlineBar[]>(`/api/v1/market/klines?symbol=${encodeURIComponent(symbol)}&period=${period}&limit=${limit}`),
+  performance: (days: number = 90) => request<PerformanceReport>(`/api/v1/analytics/performance?days=${days}`),
   orderbook: (symbol: string) => request<OrderBookResponse>(`/api/v1/market/orderbook/${encodeURIComponent(symbol)}`),
   trades: (symbol: string) => request<TradeResponse[]>(`/api/v1/market/trades/${encodeURIComponent(symbol)}`),
   fundingRates: () => request<FundingRateResponse[]>('/api/v1/market/funding'),
@@ -836,4 +839,62 @@ export function toRiskPreflightView(response: PreflightResponse): RiskPreflightV
       passed: Boolean(r.passed ?? (r.status === 'passed' || r.result === 'passed')),
     })),
   }
+}
+
+
+export interface KlineBar {
+  timestamp: number
+  open: number
+  high: number
+  low: number
+  close: number
+  volume: number
+}
+
+export interface PerformanceDailyPoint {
+  date: string
+  pnl: number
+  cumulative: number
+  unrealized: number
+  fills: number
+  buy_notional: number
+  sell_notional: number
+}
+
+export interface PerformanceSymbolRow {
+  symbol: string
+  realized_pnl: number
+  unrealized_pnl: number
+  total_pnl: number
+  quantity: number
+  entry_price: number
+  current_price: number
+  fills: number
+  notional: number
+}
+
+export interface PerformanceSummary {
+  total_pnl: number
+  realized_pnl: number
+  unrealized_pnl: number
+  total_fills: number
+  open_positions: number
+  days_reported: number
+  win_rate: number
+  profit_factor: number | null
+  sharpe: number
+  max_drawdown: number
+  best_day: number
+  worst_day: number
+  avg_daily_pnl: number
+  volatility_daily: number
+  positive_days: number
+  negative_days: number
+}
+
+export interface PerformanceReport {
+  generated_at: string
+  summary: PerformanceSummary
+  daily_series: PerformanceDailyPoint[]
+  symbols: PerformanceSymbolRow[]
 }

@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import { Activity, Bell, Bot, CandlestickChart, ChevronDown, CircleHelp, Command, FlaskConical, LayoutDashboard, Menu, PanelLeftClose, Search, Settings2, ShieldCheck, Sparkles, WalletCards, Wifi } from 'lucide-react'
+import { BarChart3, TrendingUp } from 'lucide-react'
 import { createContext, useContext, useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import type { AsyncState } from '../types'
@@ -34,6 +35,8 @@ const navigation: { label: string; items: NavItem[] }[] = [
     label: '交易与研究',
     items: [
       { label: '市场数据', to: '/market', icon: CandlestickChart, badge: 'LIVE' },
+      { label: 'K线图表', to: '/kline', icon: TrendingUp },
+      { label: '盈亏分析', to: '/analytics', icon: BarChart3 },
       { label: '量化研究', to: '/research', icon: FlaskConical },
       { label: '交易执行', to: '/execution', icon: WalletCards },
     ]
@@ -50,7 +53,7 @@ const navigation: { label: string; items: NavItem[] }[] = [
 
 const titles: Record<string, string> = {
   '/dashboard': '总览 Dashboard',
-  '/market': '市场数据 Market Data',
+  '/market': '市场数据 Market Data', '/kline': 'K线图表', '/analytics': '盈亏分析',
   '/research': '量化研究 Research',
   '/execution': '交易执行 Execution',
   '/risk': '风控中心 Risk Control',

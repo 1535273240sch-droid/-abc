@@ -96,6 +96,8 @@ class InMemoryStore:
         self.alpha_mining_service = AlphaMiningService(self)
         self.portfolio_optimizer_service = PortfolioOptimizerService(self)
         self.strategy_evolution_service = StrategyEvolutionService(self)
+        from app.services.performance_analytics_service import PerformanceAnalyticsService
+        self.performance_analytics_service = PerformanceAnalyticsService(self)
 
         self._lock = threading.RLock()
         self.persistence_error: str | None = None
